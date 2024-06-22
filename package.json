@@ -1,0 +1,28 @@
+{
+  "name": "nodejs-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "init": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.ts"
+  },
+  "author": "Kevin Lee",
+  "license": "ISC",
+  "dependencies": {
+    "@lucia-auth/adapter-mongodb": "^1.0.3",
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "cron": "^3.1.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "joi": "^17.13.1",
+    "lucia": "^3.2.0",
+    "mongoose": "^8.4.1",
+    "oslo": "^1.2.0",
+    "pm2": "^5.4.0"
+  },
+  "devDependencies": {}
+}
