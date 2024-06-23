@@ -9,6 +9,7 @@ import {
     ConfigurationError,
     DeveloperError
 } from "../exceptions/exceptions.js";
+import { logger } from "./loggingUtils.mjs";
 
 // Success Responses
 const SuccessWithoutData = (res) => {
@@ -21,10 +22,12 @@ const SuccessWithData = (res, data) => {
 
 // Error Responses
 const DefaultErrorResponse = (res, responseCode, error) => {
+    logger.error(error.stack);
     return res.status(responseCode).send({ status: error.status, data: error.message });
 }
 
 const ExternalServiceErrorResponse = (res, error) => {
+    logger.error(error.stack);
     return res.status(500).send({ status: error.status, serviceName: error.serviceName, data: error.message });
 }
 
@@ -32,6 +35,7 @@ const ExternalServiceErrorResponse = (res, error) => {
 const RedirectResponse = (res, url) => {
     return res.status(302).redirect(url);
 }
+
 export default {
     successHandler(res, data = null) {
         if (data) {

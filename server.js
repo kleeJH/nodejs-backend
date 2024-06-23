@@ -1,22 +1,39 @@
+// ##########################################################################
 // Main Imports
 import dotenv from "dotenv";
 import express from "express";
+import fs from "fs";
+import path from "path";
+import { logger } from "./app/common/utils/loggingUtils.mjs";
+import morgan from "morgan";
 // import session from "express-session";
 import cors from "cors";
 import database from "./app/lib/database.js";
-
 import { verifyRequestOrigin } from "lucia";
-// import type { User, Session } from "lucia";
 import { lucia } from "./app/lib/lucia.js";
 
-import authRouter from "./app/routes/auth.routes.js";
-
 dotenv.config();
+// ##########################################################################
 
+
+// ##########################################################################
 // Route Imports
+import authRouter from "./app/routes/auth.routes.js";
+// ##########################################################################
 
+
+// ##########################################################################
 // App Setups and Configurations
 const app = express();
+
+// Ensure log directory exists
+// const logDirectory = path.join(__dirname, 'logs');
+// if (!fs.existsSync(logDirectory)) {
+//   fs.mkdirSync(logDirectory);
+// }
+
+// Setup morgan to use winston for request logging
+app.use(morgan(":method :url :status :res[content-length]CL - :response-time ms", { stream: logger.stream }));
 
 // Setting session
 // var sess = {
@@ -32,15 +49,6 @@ const app = express();
 // app.use(session(sess));
 
 // Setting cors
-// interface CorsOptions {
-//   credentials: boolean;
-//   origin?: string;
-// }
-
-// var corsOptions: CorsOptions = {
-//   credentials: true,
-// };
-
 var corsOptions = {
   credentials: true,
 };
@@ -119,12 +127,3 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`[START] Server is running on port ${PORT}`);
 });
-
-// declare global {
-//   namespace Express {
-//     interface Locals {
-//       user: User | null;
-//       session: Session | null;
-//     }
-//   }
-// }
