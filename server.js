@@ -2,8 +2,7 @@
 // Main Imports
 import dotenv from "dotenv";
 import express from "express";
-import fs from "fs";
-import path from "path";
+import chalk from "chalk";
 import { logger } from "./app/common/utils/loggingUtils.mjs";
 import morgan from "morgan";
 // import session from "express-session";
@@ -25,12 +24,6 @@ import authRouter from "./app/routes/auth.routes.js";
 // ##########################################################################
 // App Setups and Configurations
 const app = express();
-
-// Ensure log directory exists
-// const logDirectory = path.join(__dirname, 'logs');
-// if (!fs.existsSync(logDirectory)) {
-//   fs.mkdirSync(logDirectory);
-// }
 
 // Setup morgan to use winston for request logging
 app.use(morgan(":method :url :status :res[content-length]CL - :response-time ms", { stream: logger.stream }));
@@ -125,5 +118,5 @@ app.use("/auth", authRouter);
 // Run Backend
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`[START] Server is running on port ${PORT}`);
+  console.log(`[${chalk.green("✓")}] Server is running on port ${chalk.cyan(PORT)} with ${chalk.magenta(process.env.NODE_ENV.toUpperCase())} environment.`);
 });

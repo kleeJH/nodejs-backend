@@ -3,6 +3,9 @@ module.exports = {
     {
       name: "nodejs_backend",
       script: "./server.js",
+      "args": [
+        "--color"
+      ],
 
       watch: true,
       autorestart: true,
@@ -13,7 +16,7 @@ module.exports = {
         followSymlinks: false,
       },
 
-      env_local: {
+      env: {
         NODE_ENV: "local",
       },
       env_development: {
