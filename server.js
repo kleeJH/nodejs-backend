@@ -26,7 +26,8 @@ import authRouter from "./app/routes/auth.routes.js";
 const app = express();
 
 // Setup morgan to use winston for request logging
-app.use(morgan(":method :url :status :res[content-length]CL - :response-time ms", { stream: logger.stream }));
+// app.use(morgan(`:remote-addr - :remote-user [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"`, { stream: logger.stream }));
+app.use(morgan(`:method :url :status :res[content-length]CL - :response-time ms`, { stream: logger.stream }));
 
 // Setting session
 // var sess = {

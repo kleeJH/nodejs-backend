@@ -1,6 +1,6 @@
-import path from 'path';
 import winston from 'winston';
 import "winston-daily-rotate-file";
+import chalk from 'chalk';
 
 // const logDirectory = path.join(__dirname, 'logs');
 
@@ -20,9 +20,9 @@ const levels = {
 // if the server was run in development mode; otherwise,
 // if it was run in production, show only warn and error messages.
 const level = () => {
-    const env = process.env.NODE_ENV || 'development'
-    const isDevelopment = env === 'development'
-    return isDevelopment ? 'debug' : 'warn'
+    const env = process.env.NODE_ENV || 'local'
+    const notProduction = env !== 'production'
+    return notProduction ? 'debug' : 'warn'
 }
 
 // Define different colors for each level.
@@ -31,9 +31,9 @@ const level = () => {
 const colors = {
     error: 'red',
     warn: 'yellow',
-    info: 'green',
-    http: 'cyan',
-    debug: 'white',
+    info: 'cyan',
+    http: 'magenta',
+    debug: 'green',
 }
 
 // Tell winston that you want to link the colors
@@ -42,9 +42,14 @@ winston.addColors(colors)
 
 // Chose the aspect of your log customizing the log format.
 const format = winston.format.combine(
-    winston.format.timestamp({ format: 'HH:mm:ss' }),
+    winston.format(info => ({ ...info, level: info.level.toUpperCase() }))(),
+    winston.format.errors({ stack: true }),
+    winston.format.simple(),
     winston.format.splat(),
-    winston.format.printf(info => `${info.timestamp} [${info.level}] : ${info.message}`)
+    winston.format.timestamp({ format: "HH:mm:ss" }),
+    winston.format.printf(
+        ({ timestamp, level, message }) => `${timestamp} [${level}] : ${message}`
+    )
 )
 
 var logger = winston.createLogger({
@@ -77,10 +82,14 @@ if (process.env.NODE_ENV !== 'production') {
         level: 'debug',
         handleExceptions: true,
         format: winston.format.combine(
+            format,
             winston.format.colorize(),
-            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            winston.format.splat(),
-            winston.format.printf(info => `${info.timestamp} [${info.level}] : ${info.message}`),
+            winston.format.prettyPrint(),
+            winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+            winston.format(info => ({ ...info, timestamp: chalk.gray(info.timestamp) }))(),
+            winston.format.printf(
+                ({ timestamp, level, message }) => `${timestamp} [${level}] : ${message}`
+            )
         )
     }));
 }
@@ -91,6 +100,26 @@ logger.stream = {
     }
 }
 
+// self-call log commands
+const log = {
+    error(message) {
+        logger.error(message);
+    },
+    warn(message) {
+        logger.warn(message);
+    },
+    info(message) {
+        logger.info(message);
+    },
+    http(message) {
+        logger.http(message);
+    },
+    debug(message) {
+        logger.debug(message);
+    }
+}
+
 export {
+    log,
     logger
 }
