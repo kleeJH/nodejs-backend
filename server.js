@@ -3,12 +3,12 @@
 import dotenv from "dotenv";
 import express from "express";
 import chalk from "chalk";
-import { logger } from "./app/common/utils/loggingUtils.mjs";
 import morgan from "morgan";
 // import session from "express-session";
 import cors from "cors";
 import database from "./app/lib/database.js";
-import { verifyRequestOrigin } from "lucia";
+import { logger } from "./app/common/utils/loggingUtils.mjs";
+// import { verifyRequestOrigin } from "lucia";
 import { lucia } from "./app/lib/lucia.js";
 
 dotenv.config();
@@ -16,20 +16,14 @@ dotenv.config();
 
 
 // ##########################################################################
-// Route Imports
-import authRouter from "./app/routes/auth.routes.js";
-// ##########################################################################
-
-
-// ##########################################################################
 // App Setups and Configurations
 const app = express();
 
-// Setup morgan to use winston for request logging
+// 1. Setup morgan to use winston for request logging
 // app.use(morgan(`:remote-addr - :remote-user [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"`, { stream: logger.stream }));
 app.use(morgan(`:method :url :status :res[content-length]CL - :response-time ms`, { stream: logger.stream }));
 
-// Setting session
+// 2. Setting session
 // var sess = {
 //     secret: process.env.SESSION_SECRET,
 //     resave: false,
@@ -42,7 +36,7 @@ app.use(morgan(`:method :url :status :res[content-length]CL - :response-time ms`
 // }
 // app.use(session(sess));
 
-// Setting cors
+// 3. Setting cors
 var corsOptions = {
   credentials: true,
 };
@@ -65,10 +59,10 @@ app.use(cors(corsOptions));
 app.use(express.json()); // only parse json objects
 app.use(express.urlencoded({ extended: true })); // only parse urlencoded objects
 
-// Database Connection
+// 4. Database Connection
 database.connect();
 
-// Lucia Authentication
+// 5. Lucia Authentication
 // validate origin (disabled because cors is already configured)
 // app.use((req, res, next) => {
 //   if (req.method === "GET") {
@@ -87,40 +81,67 @@ database.connect();
 //   return next();
 // });
 
-// validate session
+// Validate session
 app.use(async (req, res, next) => {
+  // Extract the session ID from the cookies in the request headers
   const sessionId = lucia.readSessionCookie(req.headers.cookie ?? "");
+  // If there is no session ID, set user and session to null and proceed to the next middleware
   if (!sessionId) {
     res.locals.user = null;
     res.locals.session = null;
     return next();
   }
 
+  // Validate the session ID and retrieve the session and user information
   const { session, user } = await lucia.validateSession(sessionId);
+  // If the session is valid and fresh, renew the session by setting a new cookie
   if (session && session.fresh) {
     res.appendHeader(
       "Set-Cookie",
       lucia.createSessionCookie(session.id).serialize()
     );
   }
+  // If the session is not valid, create and set a blank session cookie
   if (!session) {
     res.appendHeader(
       "Set-Cookie",
       lucia.createBlankSessionCookie().serialize()
     );
   }
+  // Set the session and user information to res.locals to be accessible in the next middleware
   res.locals.session = session;
   res.locals.user = user;
   return next();
 });
+// ##########################################################################
 
+
+// ##########################################################################
+// Cronjob Imports
+// ##########################################################################
+
+
+// ##########################################################################
 // Cronjobs
+// ##########################################################################
 
+
+// ##########################################################################
+// Route Imports
+import authRouter from "./app/routes/auth.routes.js";
+// ##########################################################################
+
+
+// ##########################################################################
 // Routes
 app.use("/auth", authRouter);
+// ##########################################################################
 
+
+// ##########################################################################
 // Run Backend
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`[${chalk.green("✓")}] Server is running on port ${chalk.cyan(PORT)} with ${chalk.magenta(process.env.NODE_ENV.toUpperCase())} environment.`);
 });
+// ##########################################################################
