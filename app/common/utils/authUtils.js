@@ -149,14 +149,25 @@ function validateReqBody(JoiObject) {
   }
 }
 
-async function validateSessionAndJwt(req, res, next) {
-  if (!res.locals.user || !res.locals.session) {
-    throw new AuthorizationError("Unauthorized");
+function validateSessionAndJwt() {
+  return async (req, res, next) => {
+    try {
+      // console.log(`req.locals.user: ${req.locals.user}`);
+      // console.log(`req.locals.session: ${req.locals.session}`);
+
+      if (!res.locals.user || !res.locals.session) {
+        throw new AuthorizationError("Unauthorized");
+      }
+
+      // await lucia.validateSession(res.locals.session.id); // already validated in server.js
+      // TODO: Check if there is JWT and validate
+      next();
+    }
+    catch (error) {
+      return responseUtils.errorHandler(res, error);
+    }
   }
 
-  // await lucia.validateSession(res.locals.session.id); // already validated in server.js
-
-  // TODO: Check if there is JWT and validate
 }
 
 export {

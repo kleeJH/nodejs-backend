@@ -78,7 +78,7 @@ export default {
    */
   async logOut(req, res) {
     try {
-      if (!res.locals.session) {
+      if (!res.locals.session) { // res or req?
         throw new AuthorizationError("Session not found");
       }
 
@@ -90,7 +90,15 @@ export default {
 
       // TODO: Invalidate JWT
 
-      responseUtils.redirectHandler(res, "/login");
+      responseUtils.successHandler(res, "Logged out successfully");
+    } catch (error) {
+      responseUtils.errorHandler(res, error);
+    }
+  },
+
+  async test(req, res) {
+    try {
+      responseUtils.successHandler(res, 'test');
     } catch (error) {
       responseUtils.errorHandler(res, error);
     }

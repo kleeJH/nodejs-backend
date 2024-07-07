@@ -7,7 +7,11 @@ import {
     TimeoutError,
     FileProcessingError,
     ConfigurationError,
-    DeveloperError
+    DeveloperError,
+    ExistedError,
+    AuthenticationError,
+    AuthorizationError,
+    UserInputError
 } from "../exceptions/exceptions.js";
 import { logger } from "./loggingUtils.mjs";
 
@@ -51,14 +55,22 @@ export default {
     },
 
     errorHandler(res, error) {
-        if (error instanceof NotFoundError) {
+        if (error instanceof DatabaseError) {
+            DefaultErrorResponse(res, 500, error);
+        } else if (error instanceof ExistedError) {
             DefaultErrorResponse(res, 404, error);
-        } else if (error instanceof ValidationError) {
-            DefaultErrorResponse(res, 400, error);
+        } else if (error instanceof NotFoundError) {
+            DefaultErrorResponse(res, 404, error);
+        } else if (error instanceof AuthenticationError) {
+            DefaultErrorResponse(res, 401, error);
+        } else if (error instanceof AuthorizationError) {
+            DefaultErrorResponse(res, 401, error);
         } else if (error instanceof ForbiddenError) {
             DefaultErrorResponse(res, 403, error);
-        } else if (error instanceof DatabaseError) {
-            DefaultErrorResponse(res, 500, error);
+        } else if (error instanceof UserInputError) {
+            DefaultErrorResponse(res, 400, error);
+        } else if (error instanceof ValidationError) {
+            DefaultErrorResponse(res, 400, error);
         } else if (error instanceof ExternalServiceError) {
             ExternalServiceErrorResponse(res, error);
         } else if (error instanceof TimeoutError) {
