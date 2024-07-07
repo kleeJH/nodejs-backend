@@ -18,21 +18,20 @@ export default {
   async signUp(req, res) {
     try {
       // Validate password (TODO: validate via Joi)
+      const usernameRegex = /^[a-z0-9_-]+$/;
       const username = req.body.username ?? null;
-      if (!username || username.length < 3 || username.length > 31 || !/^[a-z0-9_-]+$/.test(username)) {
-        throw new UserInputError("Invalid username");
+      if (!username || username.length < 8 || username.length > 32 || !usernameRegex.test(username)) {
+        throw new UserInputError("Invalid username. Username must be between 8 and 32 characters and only contain letters, numbers, hyphens, and underscores");
       }
 
-      // Validate if username already exists
-      await userCrud.checkUserExists(username);
-
+      const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
       const password = req.body.password ?? null;
       // Decrypt password from frontend
       // const decryptedPassword = rsaDecrypt(password); // TODO: test this
       const decryptedPassword = password;
 
-      if (!decryptedPassword || decryptedPassword.length < 6 || decryptedPassword.length > 255) {
-        throw new UserInputError("Invalid password");
+      if (!decryptedPassword || decryptedPassword.length < 6 || decryptedPassword.length > 32 || !passwordRegex.test(decryptedPassword)) {
+        throw new UserInputError("Invalid password. Password must be between 8 and 32 characters and include at least one capital letter");
       }
 
       const passwordHash = await hash(decryptedPassword, {
@@ -43,7 +42,7 @@ export default {
         parallelism: 1
       });
 
-      const signedUpUser = await userCrud.createUser({ username: username, hashedPassword: passwordHash });
+      const signedUpUser = await userCrud.createUser({ username: username, hashedPassword: passwordHash }); // Check if username exists in here
       log.info(`User ${username} with id [${signedUpUser._id}] has been created.`);
 
       // Create Session

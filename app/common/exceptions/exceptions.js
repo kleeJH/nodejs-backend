@@ -22,6 +22,13 @@ class DatabaseError extends CustomError {
     }
 }
 
+class ExistedError extends CustomError {
+    constructor(message) {
+        super("Existed Error", message);
+        this.name = this.constructor.name;
+    }
+}
+
 class NotFoundError extends CustomError {
     constructor(message) {
         super("Not Found Error", message);
@@ -102,6 +109,7 @@ class DeveloperError extends CustomError {
 
 export {
     DatabaseError,
+    ExistedError,
     NotFoundError,
     AuthenticationError,
     AuthorizationError,

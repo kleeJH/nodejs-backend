@@ -1,20 +1,31 @@
 import User from "../schemas/userSchema.js";
-import { ForbiddenError } from "../../../common/exceptions/exceptions.js";
+import { NotFoundError, ExistedError } from "../../../common/exceptions/exceptions.js";
 
 export default {
     // Common crud functions
     async createUser({ username, hashedPassword }) {
+
+        const foundUser = await User.findOne({ username, isDeleted: false });
+        if (foundUser) {
+            throw new ExistedError("User exists");
+        }
+
         const user = User.create({ username, hashedPassword });
         return user;
     },
 
     async findUserById(userId) {
         const user = await User.findById(userId);
+
+        if (!user) {
+            throw new NotFoundError("User not found");
+        }
+
         return user;
     },
 
-    async findUserByKey(key) {
-        const user = await User.findOne({ key });
+    async findUserByKey(body) {
+        const user = await User.findOne({ ...body, isDeleted: false });
         return user;
     },
 
@@ -29,10 +40,10 @@ export default {
 
     // Specific crud functions
     async checkUserExists(username) {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username, isDeleted: false });
 
         if (user) {
-            throw new ForbiddenError("User already exists");
+            throw new ExistedError("User exists");
         } else {
             return true;
         }
