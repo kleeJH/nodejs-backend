@@ -9,12 +9,12 @@ const BaseSchema = new Schema({
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: 'users',
-        required: true
+        default: null
     },
     updatedBy: {
         type: Schema.Types.ObjectId,
         ref: 'users',
-        required: true
+        default: null
     }
 }, {
     timestamps: true, // This will automatically add createdAt and updatedAt fields
@@ -25,6 +25,11 @@ const BaseSchema = new Schema({
 BaseSchema.methods.softDelete = function () {
     this.isDeleted = true;
     return this.save();
+};
+
+// Static method to find non-deleted documents
+BaseSchema.statics.findNonDeleted = function () {
+    return this.find({ isDeleted: false });
 };
 
 export default BaseSchema;

@@ -26,11 +26,21 @@ export default {
 
     async findUserByKey(body) {
         const user = await User.findOne({ ...body, isDeleted: false });
+
+        if (!user) {
+            throw new NotFoundError("User not found");
+        }
+
         return user;
     },
 
     async updateUserById(userId, data) {
         const user = await User.findByIdAndUpdate(userId, data, { new: true });
+        return user;
+    },
+
+    async deleteUserById(userId) {
+        const user = await User.findByIdAndUpdate(userId, { isDeleted: true }, { new: true });
         return user;
     },
 

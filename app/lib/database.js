@@ -13,7 +13,7 @@ export default {
         pass: process.env.MONGODB_PASSWORD,
         dbName: process.env.MONGODB_DBNAME,
       })
-      .then(() => console.log(`[${chalk.green("✓")}] Connected to ${chalk.cyan("MongoDB")} successfully.`))
+      .then(() => console.log(`[${chalk.green("✓")}] Connected to ${chalk.cyan("MongoDB")} on [${chalk.magenta(process.env.MONGODB_DBNAME)}] successfully.`))
       .catch((err) => {
         logger.error("Error while connecting to MongoDB!");
         logger.error(err);
