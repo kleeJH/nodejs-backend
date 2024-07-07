@@ -44,6 +44,13 @@ class ForbiddenError extends CustomError {
     }
 }
 
+class UserInputError extends CustomError {
+    constructor(message) {
+        super("User Input Error", message);
+        this.name = this.constructor.name;
+    }
+}
+
 class ValidationError extends CustomError {
     constructor(message) {
         super("Validation Error", message);
@@ -93,6 +100,7 @@ export {
     AuthenticationError,
     AuthorizationError,
     ForbiddenError,
+    UserInputError,
     ValidationError,
     ExternalServiceError,
     TimeoutError,
