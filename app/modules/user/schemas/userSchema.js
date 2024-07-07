@@ -1,6 +1,11 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
+import BaseSchema from "../../../common/schemas/baseSchema.js";
 
 const userSchema = new Schema({
+  _id: {
+    type: Schema.Types.ObjectId,
+    default: Types.ObjectId,
+  },
   username: {
     type: String,
     required: true,
@@ -8,8 +13,10 @@ const userSchema = new Schema({
   hashedPassword: {
     type: String,
     required: false,
-  },
+  }
 });
+
+userSchema.add(BaseSchema);
 
 const userModel = model("users", userSchema);
 export default userModel;
