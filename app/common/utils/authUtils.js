@@ -1,6 +1,7 @@
-import { randomUUID, publicEncrypt, privateDecrypt } from "crypto";
 import fs from "fs";
-import { FileProcessingError } from "../exceptions/exceptions";
+import responseUtils from "./responseUtils.js";
+import { publicEncrypt, privateDecrypt } from "crypto";
+import { FileProcessingError, ValidationError } from "../exceptions/exceptions.js";
 
 function rsaEncrypt(ciphertext) {
   let publicKey;
@@ -38,7 +39,34 @@ function rsaDecrypt(ciphertext) {
   return decrypted.toString("utf8");
 }
 
+function joiValidateRSAEncrypted(value, helpers) {
+  try {
+    const decrypted = rsaDecrypt(value);
+    return decrypted ? value : helpers.error('any.invalid');
+  } catch (error) {
+    return helpers.error('any.invalid');
+  }
+}
+
+function validateReqBody(JoiObject) {
+  return async (req, res, next) => {
+    try {
+      const result = await JoiObject.validate(req.body);
+
+      if (result.error) {
+        throw new ValidationError(result.error.message);
+      }
+
+      next();
+    } catch (error) {
+      return responseUtils.errorHandler(res, error);
+    }
+  }
+}
+
 export {
   rsaEncrypt,
-  rsaDecrypt
+  rsaDecrypt,
+  joiValidateRSAEncrypted,
+  validateReqBody
 };
