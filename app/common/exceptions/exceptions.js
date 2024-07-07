@@ -4,6 +4,12 @@ class CustomError extends Error {
         super(message);
         this.name = this.constructor.name;
         this.status = status;
+
+        // Detect object/array in message (used for authUtils.validateReqBody)
+        if (typeof message === "object") {
+            this.messages = message;
+        }
+
         Error.captureStackTrace(this, this.constructor);
     }
 }

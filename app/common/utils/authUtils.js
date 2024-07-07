@@ -54,7 +54,8 @@ function validateReqBody(JoiObject) {
       const result = await JoiObject.validate(req.body);
 
       if (result.error) {
-        throw new ValidationError(result.error.message);
+        const errorMessages = result.error.details.map(detail => detail.message);
+        throw new ValidationError(errorMessages);
       }
 
       next();

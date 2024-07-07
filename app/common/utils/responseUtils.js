@@ -23,12 +23,17 @@ const SuccessWithData = (res, data) => {
 // Error Responses
 const DefaultErrorResponse = (res, responseCode, error) => {
     logger.error(error.stack);
-    return res.status(responseCode).send({ status: error.status, data: error.message });
+
+    if (error.messages) {
+        return res.status(responseCode).send({ status: error.status, errors: error.messages });
+    } else {
+        return res.status(responseCode).send({ status: error.status, error: error.message });
+    }
 }
 
 const ExternalServiceErrorResponse = (res, error) => {
     logger.error(error.stack);
-    return res.status(500).send({ status: error.status, serviceName: error.serviceName, data: error.message });
+    return res.status(500).send({ status: error.status, serviceName: error.serviceName, error: error.message });
 }
 
 // Redirect Response
