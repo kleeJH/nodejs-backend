@@ -1,7 +1,8 @@
 # nodejs-backend
 ## Setup
 1. Install dependencies: `npm i`
-2. Start PM2: `pm2 start server.config.cjs`
+2. Run `node ./app/common/utils/generateKeys.js` to generate asymmetric encryption keys
+3. Start PM2: `pm2 start server.config.cjs`
 
 ## Useful PM2 Terminal Commands
 - Start: `pm2 start server.config.cjs`

@@ -1,18 +1,20 @@
 import fs from "fs";
+import path from "path";
 import responseUtils from "./responseUtils.js";
-import { lucia } from "../../lib/lucia.js";
+import { jwtVerify, SignJWT, importPKCS8, importSPKI } from "jose";
 import { hashSync, verifySync } from "@node-rs/argon2";
 import { publicEncrypt, privateDecrypt } from "crypto";
+import { log } from "./loggingUtils.mjs";
 import { FileProcessingError, ValidationError, UserInputError, DeveloperError, AuthorizationError } from "../exceptions/exceptions.js";
 
-function rsaEncrypt(ciphertext) {
+function rsaEncrypt(plaintext) {
   let publicKey;
 
   try {
-    publicKey = fs.readFileSync("./keys/rsa_2048_public.pem");
+    publicKey = fs.readFileSync("./keys/rsa_oaep_2048_public_key.pem");
   }
   catch (err) {
-    throw new FileProcessingError("File not found: ./keys/rsa_2048_public.pem");
+    throw new FileProcessingError("File not found: ./keys/rsa_oaep_2048_public_key.pem");
   }
 
   const encrypted = publicEncrypt(
@@ -27,10 +29,10 @@ function rsaDecrypt(ciphertext) {
   let privateKey;
 
   try {
-    privateKey = fs.readFileSync("./keys/rsa_2048_private.pem");
+    privateKey = fs.readFileSync("./keys/rsa_oaep_2048_private_key.pem");
   }
   catch (err) {
-    throw new FileProcessingError("File not found: ./keys/rsa_2048_private.pem");
+    throw new FileProcessingError("File not found: ./keys/rsa_oaep_2048_private_key.pem");
   }
 
   const decrypted = privateDecrypt(
@@ -149,18 +151,147 @@ function validateReqBody(JoiObject) {
   }
 }
 
+/**
+ * Generates an access token for a user.
+ *
+ * @param {Object} user - The user object for whom the access token is generated.
+ * @return {Promise<string>} The generated access token.
+ */
+async function generateAccessToken(user) {
+  // Load the private key from the PEM file
+  const accessTokenPrivateKeyPem = fs.readFileSync(path.join("./keys", 'access_token_private_key.pem'), 'utf8');
+  const accessTokenPrivateKey = await importPKCS8(accessTokenPrivateKeyPem, 'RS256');
+
+  // Define the payload for the token
+  const accessPayload = {
+    username: user.username,
+    scope: 'access'
+  };
+
+  // Define the expiration time
+  const accessTokenExpiresIn = '15m'; // Access token expires in 15 minutes
+
+  // Sign the tokens
+  const accessToken = await new SignJWT(accessPayload)
+    .setProtectedHeader({ alg: 'RS256' })
+    .setIssuedAt()
+    .setExpirationTime(accessTokenExpiresIn)
+    .setIssuer(process.env.ISSUER)
+    .setAudience(process.env.AUDIENCE)
+    .sign(accessTokenPrivateKey);
+
+  return accessToken;
+}
+
+/**
+ * Generates a refresh token for a given user.
+ *
+ * @param {Object} user - The user object containing the username.
+ * @return {Promise<string>} The generated refresh token.
+ */
+async function generateRefreshToken(user) {
+  // Load the private key from the PEM file
+  const refreshTokenPrivateKeyPem = fs.readFileSync(path.join("./keys", 'refresh_token_private_key.pem'), 'utf8');
+  const refreshTokenPrivateKey = await importPKCS8(refreshTokenPrivateKeyPem, 'RS256');
+
+  // Define the payload for the token
+  const refreshPayload = {
+    username: user.username,
+    scope: 'refresh'
+  };
+
+  // Define the expiration time
+  const refreshTokenExpiresIn = '7d'; // Refresh token expires in 7 days
+
+  // Sign the tokens
+  const refreshToken = await new SignJWT(refreshPayload)
+    .setProtectedHeader({ alg: 'RS256' })
+    .setIssuedAt()
+    .setExpirationTime(refreshTokenExpiresIn)
+    .setIssuer(process.env.ISSUER)
+    .setAudience(process.env.AUDIENCE)
+    .sign(refreshTokenPrivateKey);
+
+  return refreshToken;
+}
+
+/**
+ * Verifies an access token by decrypting it using the public key from the PEM file.
+ *
+ * @param {string} accessToken - The access token to be verified.
+ * @return {Promise<import("jose").JWTPayload>} The payload of the verified access token.
+ * @throws {AuthorizationError} If the access token is invalid.
+ */
+async function verifyAccessToken(accessToken) {
+  // Load the public key from the PEM file
+  const accessTokenPublicKeyPem = fs.readFileSync(path.join("./keys", 'access_token_public_key.pem'), 'utf8');
+  const accessTokenPublicKey = await importSPKI(accessTokenPublicKeyPem, 'RS256');
+
+  try {
+    const { payload } = await jwtVerify(accessToken, accessTokenPublicKey, {
+      issuer: process.env.ISSUER,
+      audience: process.env.AUDIENCE,
+    });
+
+    return payload;
+  } catch (error) {
+    log.error(error.message);
+    throw new AuthorizationError("Invalid access token");
+  }
+}
+
+/**
+ * Verifies a refresh token using the provided public key.
+ *
+ * @param {string} refreshToken - The refresh token to be verified.
+ * @return {Promise<import("jose").JWTPayload>} The payload of the verified refresh token.
+ * @throws {AuthorizationError} If the refresh token is invalid.
+ */
+async function verifyRefreshToken(refreshToken) {
+  // Load the public key from the PEM file
+  const refreshTokenPublicKeyPem = fs.readFileSync(path.join("./keys", 'refresh_token_public_key.pem'), 'utf8');
+  const refreshTokenPublicKey = await importSPKI(refreshTokenPublicKeyPem, 'RS256');
+
+  try {
+    const { payload } = await jwtVerify(refreshToken, refreshTokenPublicKey, {
+      issuer: process.env.ISSUER,
+      audience: process.env.AUDIENCE,
+    });
+
+    return payload;
+  } catch (error) {
+    log.error(error.message);
+    throw new AuthorizationError("Invalid refresh token");
+  }
+}
+
+/**
+ * Validates the session and JWT for the user.
+ *
+ * @param {import('express').Request} req - The request object
+ * @param {import('express').Response} res - The response object
+ * @param {import('express').NextFunction} next - The next middleware function
+ * @return {Promise<void>} - Promise that resolves when validation is complete
+ */
 function validateSessionAndJwt() {
   return async (req, res, next) => {
     try {
-      // console.log(`req.locals.user: ${req.locals.user}`);
-      // console.log(`req.locals.session: ${req.locals.session}`);
-
       if (!res.locals.user || !res.locals.session) {
-        throw new AuthorizationError("Unauthorized");
+        throw new AuthorizationError("No session found");
       }
 
-      // await lucia.validateSession(res.locals.session.id); // already validated in server.js
-      // TODO: Check if there is JWT and validate
+      // Check auth header
+      const authHeader = req.headers['authorization'];
+
+      if (!authHeader) {
+        throw new AuthorizationError("No authorization token found");
+      }
+
+      // Verify access token
+      const accessToken = authHeader.split(' ')[1];
+      const payload = await verifyAccessToken(accessToken);
+      req.user = payload;
+
       next();
     }
     catch (error) {
@@ -178,5 +309,7 @@ export {
   verifyPassword,
   joiValidateRSAEncrypted,
   validateReqBody,
+  generateAccessToken,
+  generateRefreshToken,
   validateSessionAndJwt
 };

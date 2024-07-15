@@ -25,7 +25,7 @@ export default {
     },
 
     async findUserByKey(body) {
-        const user = await User.findOne({ ...body, isDeleted: false });
+        const user = await User.findOne({ ...body, isDeleted: false }, { __v: 0, createdBy: 0, updatedBy: 0, hashedPassword: 0 });
 
         if (!user) {
             throw new NotFoundError("User not found");

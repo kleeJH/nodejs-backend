@@ -1,3 +1,7 @@
+# encryption keys
+keys/
+*.pem
+
 # Logs
 logs
 *.log

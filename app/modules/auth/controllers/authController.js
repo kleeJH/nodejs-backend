@@ -1,15 +1,14 @@
 import userCrud from "../../user/cruds/userCrud.js";
-import { validateUsername, validatePassword, verifyPassword } from "../../../common/utils/authUtils.js";
 import responseUtils from "../../../common/utils/responseUtils.js";
-// import express from "express";
-// const { Request, Response } = express;
+import { generateAccessToken, generateRefreshToken } from "../../../common/utils/authUtils.js";
+import { validateUsername, validatePassword, verifyPassword } from "../../../common/utils/authUtils.js";
 import { log } from "../../../common/utils/loggingUtils.mjs";
 import { lucia } from "../../../lib/lucia.js";
 import { AuthenticationError, AuthorizationError } from "../../../common/exceptions/exceptions.js";
 
-// TODO: User Group
-// TODO: JWT
-// TODO: User Access Control & Module Access Control
+// TODO: JWT Invalidate after logout
+// TODO: User Group Access Control & Module Access Control
+// TODO: Regenerate refresh token
 
 export default {
   /**
@@ -49,7 +48,7 @@ export default {
       const username = validateUsername(req.body.username);
       const passwordUnhashed = validatePassword(req.body.password, false);
 
-      const user = await userCrud.findUserByKey({ username: username });
+      let user = await userCrud.findUserByKey({ username: username });
 
       if (!verifyPassword(passwordUnhashed, user.hashedPassword)) {
         throw new AuthenticationError("Invalid username or password");
@@ -57,7 +56,13 @@ export default {
 
       const session = await lucia.createSession(user._id, {});
 
-      // TODO: Create JWT (Access token and refresh token)
+      const tokenPayload = {
+        accessToken: await generateAccessToken(user),
+        refreshToken: await generateRefreshToken(user)
+      }
+
+      user = user.toObject();
+      user.token = tokenPayload;
 
       res
         .appendHeader("Set-Cookie", lucia.createSessionCookie(session.id).serialize())
@@ -81,8 +86,6 @@ export default {
       if (!res.locals.session) { // res or req?
         throw new AuthorizationError("Session not found");
       }
-
-      // TODO: Check if there is JWT
 
       await lucia.invalidateSession(res.locals.session.id);
 
