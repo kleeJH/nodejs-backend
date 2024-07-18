@@ -1,11 +1,10 @@
 import fs from "fs";
 import path from "path";
-import responseUtils from "./responseUtils.js";
 import { jwtVerify, SignJWT, importPKCS8, importSPKI } from "jose";
 import { hashSync, verifySync } from "@node-rs/argon2";
 import { publicEncrypt, privateDecrypt, randomBytes } from "crypto";
 import { log } from "./loggingUtils.mjs";
-import { FileProcessingError, ValidationError, UserInputError, DeveloperError, AuthorizationError } from "../exceptions/exceptions.js";
+import { FileProcessingError, UserInputError, DeveloperError, AuthorizationError } from "../exceptions/exceptions.js";
 import { base64ToBuffer, bufferToBase64 } from "./helperUtils.js";
 
 function rsaEncrypt(plaintext) {
@@ -154,23 +153,6 @@ function joiValidateRSAEncrypted(value, helpers) {
   }
 }
 
-function validateReqBody(JoiObject) {
-  return async (req, res, next) => {
-    try {
-      const result = await JoiObject.validate(req.body);
-
-      if (result.error) {
-        const errorMessages = result.error.details.map(detail => detail.message);
-        throw new ValidationError(errorMessages);
-      }
-
-      next();
-    } catch (error) {
-      return responseUtils.errorHandler(res, error);
-    }
-  }
-}
-
 /**
  * Generates an access token for a user.
  *
@@ -285,44 +267,6 @@ async function verifyRefreshToken(refreshToken) {
   }
 }
 
-/**
- * Validates the session and JWT for the user.
- *
- * @param {import('express').Request} req - The request object
- * @param {import('express').Response} res - The response object
- * @param {import('express').NextFunction} next - The next middleware function
- * @return {Promise<void>} - Promise that resolves when validation is complete
- */
-function validateSessionAndJwt() {
-  return async (req, res, next) => {
-    try {
-      // Check auth header
-      const authHeader = req.headers['authorization'];
-
-      if (!authHeader) {
-        throw new AuthorizationError("No authorization token found");
-      }
-
-      // Verify access token
-      const accessToken = authHeader.split(' ')[1];
-      const payload = await verifyAccessToken(accessToken);
-
-      // Check if session are still valid
-      if (!res.locals.user || !res.locals.session) {
-        throw new AuthorizationError("No session found");
-      }
-
-      req.user = payload;
-
-      next();
-    }
-    catch (error) {
-      return responseUtils.errorHandler(res, error);
-    }
-  }
-
-}
-
 export {
   rsaEncrypt,
   rsaDecrypt,
@@ -331,8 +275,8 @@ export {
   validateAndSaltHashPassword,
   verifyPassword,
   joiValidateRSAEncrypted,
-  validateReqBody,
   generateAccessToken,
   generateRefreshToken,
-  validateSessionAndJwt
+  verifyAccessToken,
+  verifyRefreshToken
 };
