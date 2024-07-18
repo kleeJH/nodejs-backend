@@ -3,14 +3,14 @@ import { NotFoundError, ExistedError } from "../../../common/exceptions/exceptio
 
 export default {
     // Common crud functions
-    async createUser({ username, hashedPassword }) {
+    async createUser(username, body) {
 
         const foundUser = await User.findOne({ username, isDeleted: false });
         if (foundUser) {
             throw new ExistedError("User exists");
         }
 
-        const user = User.create({ username, hashedPassword });
+        const user = User.create(body);
         return user;
     },
 

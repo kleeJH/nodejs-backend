@@ -3,9 +3,10 @@ import path from "path";
 import responseUtils from "./responseUtils.js";
 import { jwtVerify, SignJWT, importPKCS8, importSPKI } from "jose";
 import { hashSync, verifySync } from "@node-rs/argon2";
-import { publicEncrypt, privateDecrypt } from "crypto";
+import { publicEncrypt, privateDecrypt, randomBytes } from "crypto";
 import { log } from "./loggingUtils.mjs";
 import { FileProcessingError, ValidationError, UserInputError, DeveloperError, AuthorizationError } from "../exceptions/exceptions.js";
+import { base64ToBuffer, bufferToBase64 } from "./helperUtils.js";
 
 function rsaEncrypt(plaintext) {
   let publicKey;
@@ -44,6 +45,16 @@ function rsaDecrypt(ciphertext) {
 }
 
 /**
+ * Generates a salt using random bytes.
+ *
+ * @return {Buffer} The generated salt string in hex.
+ */
+function generateSalt() {
+  const buffer = randomBytes(32);
+  return buffer;
+}
+
+/**
  * Validates a username.
  *
  * @param {string} username - The username to be validated.
@@ -69,7 +80,7 @@ function validateUsername(username) {
  * @throws {UserInputError} If the password is invalid.
  * @return {string} The password hashed if `doHash` is `true`, otherwise the decrypted password.
  */
-function validatePassword(password, doHash = false) {
+function validatePassword(password) {
   const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
   password = password ?? null;
   // Decrypt password from frontend
@@ -80,19 +91,22 @@ function validatePassword(password, doHash = false) {
     throw new UserInputError("Invalid password. Password must be between 8 and 32 characters and include at least one capital letter");
   }
 
-  if (!doHash) {
-    return decryptedPassword;
-  }
+  return decryptedPassword;
+}
+
+function validateAndSaltHashPassword(password) {
+  const decryptedPassword = validatePassword(password);
+  const newPasswordSalt = generateSalt();
 
   const passwordHash = hashSync(decryptedPassword, {
-    // Recommended minimum parameters
+    salt: newPasswordSalt,
     memoryCost: 19456,
     timeCost: 2,
     outputLen: 32,
     parallelism: 1
   });
 
-  return passwordHash;
+  return { passwordHash: passwordHash, passwordSalt: bufferToBase64(newPasswordSalt) };
 }
 
 /**
@@ -100,9 +114,10 @@ function validatePassword(password, doHash = false) {
  *
  * @param {string} userSentPassword - The password entered by the user.
  * @param {string} storedPasswordHash - The hashed password stored in the database.
+ * @param {string} storedPasswordSalt - The salt used to hash the password stored in the database.
  * @return {boolean} Indicates whether the user-entered password is valid.
  */
-async function verifyPassword(userSentPassword, storedPasswordHash) {
+async function verifyPassword(userSentPassword, storedPasswordHash, storedPasswordSalt) {
   if (!userSentPassword) {
     throw new UserInputError("User password must not be empty");
   }
@@ -111,11 +126,16 @@ async function verifyPassword(userSentPassword, storedPasswordHash) {
     throw new DeveloperError("Stored password must not be empty");
   }
 
+  if (!storedPasswordSalt) {
+    throw new DeveloperError("Stored password salt must not be empty");
+  }
+
   // Decrypt password from frontend
   // const decryptedPassword = rsaDecrypt(userSentPassword); // TODO: test this
   const decryptedUserSentPassword = userSentPassword;
 
   const isValidPassword = verifySync(storedPasswordHash, decryptedUserSentPassword, {
+    salt: base64ToBuffer(storedPasswordSalt),
     memoryCost: 19456,
     timeCost: 2,
     outputLen: 32,
@@ -276,10 +296,6 @@ async function verifyRefreshToken(refreshToken) {
 function validateSessionAndJwt() {
   return async (req, res, next) => {
     try {
-      if (!res.locals.user || !res.locals.session) {
-        throw new AuthorizationError("No session found");
-      }
-
       // Check auth header
       const authHeader = req.headers['authorization'];
 
@@ -290,6 +306,12 @@ function validateSessionAndJwt() {
       // Verify access token
       const accessToken = authHeader.split(' ')[1];
       const payload = await verifyAccessToken(accessToken);
+
+      // Check if session are still valid
+      if (!res.locals.user || !res.locals.session) {
+        throw new AuthorizationError("No session found");
+      }
+
       req.user = payload;
 
       next();
@@ -306,6 +328,7 @@ export {
   rsaDecrypt,
   validateUsername,
   validatePassword,
+  validateAndSaltHashPassword,
   verifyPassword,
   joiValidateRSAEncrypted,
   validateReqBody,

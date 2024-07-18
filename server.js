@@ -62,25 +62,6 @@ app.use(express.urlencoded({ extended: true })); // only parse urlencoded object
 // 4. Database Connection
 database.connect();
 
-// 5. Lucia Authentication
-// validate origin (disabled because cors is already configured)
-// app.use((req, res, next) => {
-//   if (req.method === "GET") {
-//     return next();
-//   }
-//   const originHeader = req.headers.origin ?? null;
-//   const hostHeader = req.headers.host ?? null;
-
-//   if (
-//     !originHeader ||
-//     !hostHeader ||
-//     !verifyRequestOrigin(originHeader, [hostHeader])
-//   ) {
-//     return res.status(403).end();
-//   }
-//   return next();
-// });
-
 // Validate session
 app.use(async (req, res, next) => {
   // Extract the session ID from the cookies in the request headers
@@ -128,13 +109,15 @@ app.use(async (req, res, next) => {
 
 // ##########################################################################
 // Route Imports
-import authRouter from "./app/routes/auth.routes.js";
+// V1
+import authRouter from "./app/routes/v1/auth.routes.js";
 // ##########################################################################
 
 
 // ##########################################################################
 // Routes
-app.use("/auth", authRouter);
+// V1
+app.use("/v1/auth", authRouter);
 // ##########################################################################
 
 

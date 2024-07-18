@@ -10,10 +10,16 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
-  hashedPassword: {
+  passwordHash: {
     type: String,
     required: false,
-  }
+    default: null,
+  },
+  passwordSalt: {
+    type: String,
+    required: false,
+    default: "",
+  },
 });
 
 userSchema.add(BaseSchema);

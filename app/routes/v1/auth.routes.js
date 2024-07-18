@@ -1,7 +1,7 @@
 import { Router } from "express";
-import authController from "../modules/auth/controllers/authController.js";
-import authValidations from "../validations/authValidations.js";
-import { validateReqBody, validateSessionAndJwt } from "../common/utils/authUtils.js";
+import authController from "../../modules/auth/controllers/authController.js";
+import authValidations from "../../validations/authValidations.js";
+import { validateReqBody, validateSessionAndJwt } from "../../common/utils/authUtils.js";
 
 const authRouter = Router();
 

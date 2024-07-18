@@ -1,7 +1,7 @@
 import userCrud from "../../user/cruds/userCrud.js";
 import responseUtils from "../../../common/utils/responseUtils.js";
 import { generateAccessToken, generateRefreshToken } from "../../../common/utils/authUtils.js";
-import { validateUsername, validatePassword, verifyPassword } from "../../../common/utils/authUtils.js";
+import { validateUsername, validatePassword, validateAndSaltHashPassword, verifyPassword } from "../../../common/utils/authUtils.js";
 import { log } from "../../../common/utils/loggingUtils.mjs";
 import { lucia } from "../../../lib/lucia.js";
 import { AuthenticationError, AuthorizationError } from "../../../common/exceptions/exceptions.js";
@@ -21,9 +21,9 @@ export default {
   async signUp(req, res) {
     try {
       const username = validateUsername(req.body.username);
-      const passwordHash = validatePassword(req.body.password, true);
+      const passwordPayload = validateAndSaltHashPassword(req.body.password);
 
-      const signedUpUser = await userCrud.createUser({ username: username, hashedPassword: passwordHash }); // Check if username exists in here
+      const signedUpUser = await userCrud.createUser(username, { username: username, ...passwordPayload }); // Check if username exists in here
       log.info(`User ${username} with id [${signedUpUser._id}] has been created.`);
 
       // Create Session (should I make a session in sign up or do it in login?)
@@ -46,7 +46,7 @@ export default {
   async logIn(req, res) {
     try {
       const username = validateUsername(req.body.username);
-      const passwordUnhashed = validatePassword(req.body.password, false);
+      const passwordUnhashed = validatePassword(req.body.password);
 
       let user = await userCrud.findUserByKey({ username: username });
 
