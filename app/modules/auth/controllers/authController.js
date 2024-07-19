@@ -3,7 +3,7 @@ import responseUtils from "../../../common/utils/responseUtils.js";
 import { generateAccessToken, generateRefreshToken } from "../../../common/utils/authUtils.js";
 import { validateUsername, validatePassword, validateAndSaltHashPassword, verifyPassword } from "../../../common/utils/authUtils.js";
 import { log } from "../../../common/utils/loggingUtils.mjs";
-import { lucia } from "../../../lib/lucia.js";
+// import { lucia } from "../../../lib/lucia.js";
 import { AuthenticationError, AuthorizationError } from "../../../common/exceptions/exceptions.js";
 
 // TODO: JWT Invalidate after logout
@@ -26,9 +26,9 @@ export default {
       const signedUpUser = await userCrud.createUser(username, { username: username, ...passwordPayload }); // Check if username exists in here
       log.info(`User ${username} with id [${signedUpUser._id}] has been created.`);
 
-      // Create Session (should I make a session in sign up or do it in login?)
-      const session = await lucia.createSession(signedUpUser._id, {});
-      res.appendHeader("Set-Cookie", lucia.createSessionCookie(session.id).serialize());
+      // Lucia Session
+      // const session = await lucia.createSession(signedUpUser._id, {});
+      // res.appendHeader("Set-Cookie", lucia.createSessionCookie(session.id).serialize());
 
       responseUtils.successHandler(res, signedUpUser);
     } catch (error) {
@@ -54,7 +54,6 @@ export default {
         throw new AuthenticationError("Invalid username or password");
       }
 
-      const session = await lucia.createSession(user._id, {});
 
       const tokenPayload = {
         accessToken: await generateAccessToken(user),
@@ -64,9 +63,11 @@ export default {
       user = user.toObject();
       user.token = tokenPayload;
 
-      res
-        .appendHeader("Set-Cookie", lucia.createSessionCookie(session.id).serialize())
-        .appendHeader("Location", "/")
+      // Lucia Session
+      // const session = await lucia.createSession(user._id, {});
+      // res
+      //   .appendHeader("Set-Cookie", lucia.createSessionCookie(session.id).serialize())
+      //   .appendHeader("Location", "/")
 
       responseUtils.successHandler(res, user);
     } catch (error) {
@@ -87,11 +88,11 @@ export default {
         throw new AuthorizationError("Session not found");
       }
 
-      await lucia.invalidateSession(res.locals.session.id);
+      // Lucia Session
+      // await lucia.invalidateSession(res.locals.session.id);
+      // res.setHeader("Set-Cookie", lucia.createBlankSessionCookie().serialize());
 
-      res.setHeader("Set-Cookie", lucia.createBlankSessionCookie().serialize());
-
-      // TODO: Invalidate JWT
+      // TODO: Invalidate Refresh Token
 
       responseUtils.successHandler(res, "Logged out successfully");
     } catch (error) {

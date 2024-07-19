@@ -2,6 +2,7 @@ import responseUtils from "../common/utils/responseUtils.js";
 import { verifyAccessToken } from "../common/utils/authUtils.js";
 import Joi from "joi";
 import { ValidationError, AuthorizationError } from "../common/exceptions/exceptions.js";
+import { log } from "../common/utils/loggingUtils.mjs";
 
 /**
  * Validates the request body using the provided Joi object.
@@ -63,4 +64,22 @@ function validateSessionAndJwt() {
     }
 }
 
-export { validateReqBody, validateSessionAndJwt }
+function validateAPIKey() {
+    return async (req, res, next) => {
+        try {
+            const xApiKey = req.headers['x-api-key'];
+
+            if (!xApiKey || xApiKey !== process.env.API_KEY) {
+                throw new AuthorizationError("Invalid API key");
+            }
+
+            next();
+        }
+        catch (error) {
+            log.error(error.message);
+            return responseUtils.errorHandler(res, error);
+        }
+    }
+}
+
+export { validateReqBody, validateSessionAndJwt, validateAPIKey }

@@ -9,7 +9,7 @@ import cors from "cors";
 import database from "./app/lib/database.js";
 import { logger } from "./app/common/utils/loggingUtils.mjs";
 // import { verifyRequestOrigin } from "lucia";
-import { lucia } from "./app/lib/lucia.js";
+// import { lucia } from "./app/lib/lucia.js";
 
 dotenv.config();
 // ##########################################################################
@@ -62,38 +62,38 @@ app.use(express.urlencoded({ extended: true })); // only parse urlencoded object
 // 4. Database Connection
 database.connect();
 
-// Validate session
-app.use(async (req, res, next) => {
-  // Extract the session ID from the cookies in the request headers
-  const sessionId = lucia.readSessionCookie(req.headers.cookie ?? "");
-  // If there is no session ID, set user and session to null and proceed to the next middleware
-  if (!sessionId) {
-    res.locals.user = null;
-    res.locals.session = null;
-    return next();
-  }
+// // Validate Lucia session
+// app.use(async (req, res, next) => {
+//   // Extract the session ID from the cookies in the request headers
+//   const sessionId = lucia.readSessionCookie(req.headers.cookie ?? "");
+//   // If there is no session ID, set user and session to null and proceed to the next middleware
+//   if (!sessionId) {
+//     res.locals.user = null;
+//     res.locals.session = null;
+//     return next();
+//   }
 
-  // Validate the session ID and retrieve the session and user information
-  const { session, user } = await lucia.validateSession(sessionId);
-  // If the session is valid and fresh, renew the session by setting a new cookie
-  if (session && session.fresh) {
-    res.appendHeader(
-      "Set-Cookie",
-      lucia.createSessionCookie(session.id).serialize()
-    );
-  }
-  // If the session is not valid, create and set a blank session cookie
-  if (!session) {
-    res.appendHeader(
-      "Set-Cookie",
-      lucia.createBlankSessionCookie().serialize()
-    );
-  }
-  // Set the session and user information to res.locals to be accessible in the next middleware
-  res.locals.session = session;
-  res.locals.user = user;
-  return next();
-});
+//   // Validate the session ID and retrieve the session and user information
+//   const { session, user } = await lucia.validateSession(sessionId);
+//   // If the session is valid and fresh, renew the session by setting a new cookie
+//   if (session && session.fresh) {
+//     res.appendHeader(
+//       "Set-Cookie",
+//       lucia.createSessionCookie(session.id).serialize()
+//     );
+//   }
+//   // If the session is not valid, create and set a blank session cookie
+//   if (!session) {
+//     res.appendHeader(
+//       "Set-Cookie",
+//       lucia.createBlankSessionCookie().serialize()
+//     );
+//   }
+//   // Set the session and user information to res.locals to be accessible in the next middleware
+//   res.locals.session = session;
+//   res.locals.user = user;
+//   return next();
+// });
 // ##########################################################################
 
 
