@@ -9,5 +9,5 @@ const userTokenSchema = new Schema({
 })
     .add(BaseSchema);
 
-const userTokenModel = model("usertokens", userTokenSchema);
-export default userTokenModel;
+const UserToken = model("usertokens", userTokenSchema);
+export default UserToken;

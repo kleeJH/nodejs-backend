@@ -7,7 +7,6 @@ import { log } from "../../../common/utils/loggingUtils.mjs";
 import { AuthenticationError } from "../../../common/exceptions/exceptions.js";
 import userTokenCrud from "../cruds/userTokenCrud.js";
 
-// TODO: JWT Refresh token Invalidate after logout
 // TODO: User Group Access Control & Module Access Control
 // TODO: Regenerate refresh token
 

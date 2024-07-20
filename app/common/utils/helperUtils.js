@@ -1,3 +1,5 @@
+import { DeveloperError } from "../exceptions/exceptions.js";
+
 async function renderHTMLTemplate(
     filePath,
     args) {
@@ -29,4 +31,18 @@ function base64ToBuffer(base64String) {
     return Buffer.from(base64String, 'base64');
 }
 
-export { renderHTMLTemplate, bufferToBase64, base64ToBuffer }
+/**
+ * Generates a mongo id from a string.
+ *
+ * @param {string} str - description of parameter
+ * @return {string} string of mongo id
+ */
+function generateGenericMongoId(str) {
+    if (str.length > 24) {
+        throw new DeveloperError("String must not be longer than 24 characters");
+    } else {
+        return "0".repeat(24 - str.length) + str;
+    }
+}
+
+export { renderHTMLTemplate, bufferToBase64, base64ToBuffer, generateGenericMongoId }

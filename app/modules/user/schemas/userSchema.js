@@ -1,5 +1,5 @@
-import { Schema, model, Types } from "mongoose";
 import BaseSchema from "../../../common/schemas/baseSchema.js";
+import { Schema, model, Types } from "mongoose";
 
 const userSchema = new Schema({
   _id: {
@@ -39,8 +39,8 @@ const userSchema = new Schema({
 
 userSchema.add(BaseSchema);
 
-const userModel = model("users", userSchema);
-export default userModel;
+const User = model("users", userSchema);
+export default User;
 
 // export interface IUser {
 //   _id: string;
