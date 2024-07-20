@@ -1,0 +1,462 @@
+{
+	"info": {
+		"_postman_id": "1a317952-1b0f-4f35-b503-785d81a2dfdb",
+		"name": "NodeJS Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30506829"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Sign Up (Password)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost:8888",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"user1\",\r\n    \"password\": \"Password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{backend_url}}/v1/auth/signup/password",
+							"host": [
+								"{{backend_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"signup",
+								"password"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Sign Up (Password)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Origin",
+										"value": "http://localhost:8888",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"user1\",\r\n    \"password\": \"Password\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{backend_url}}/v1/auth/signup/password",
+									"host": [
+										"{{backend_url}}"
+									],
+									"path": [
+										"v1",
+										"auth",
+										"signup",
+										"password"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:8888"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "396"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"18c-KLWHBzjfTyPrLkYBbNOxoPDOgq4\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 20 Jul 2024 03:27:52 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"Success\",\n    \"data\": {\n        \"_id\": \"669b2eb83f9247d075b67b05\",\n        \"username\": \"user1\",\n        \"passwordHash\": \"$argon2id$v=19$m=19456,t=2,p=1$eZf1QHZOecfUDPYNsiWTuw$rjwPxkhvguFFPnfUJKh+n4Y0RLTNmCrCt4EUsUmznZc\",\n        \"passwordSalt\": \"c7wQgjrA5434ub328mD3njNsT6Tzm1Q7z+OhjNR9pIA=\",\n        \"isDeleted\": false,\n        \"createdBy\": null,\n        \"updatedBy\": null,\n        \"createdAt\": \"2024-07-20T03:27:52.504Z\",\n        \"updatedAt\": \"2024-07-20T03:27:52.504Z\",\n        \"__v\": 0\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Log In (Password)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Set environment variables for access_token and refresh_token\", function () {\r",
+									"  const responseBody = pm.response.json();\r",
+									"  if(responseBody && responseBody.data && responseBody.data.token) {\r",
+									"    pm.environment.set(\"access_token\", responseBody.data.token.accessToken);\r",
+									"    pm.environment.set(\"refresh_token\", responseBody.data.token.refreshToken);\r",
+									"  } else {\r",
+									"    pm.expect.fail(\"Failed to set environment variables for access_token and refresh_token\");\r",
+									"  }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"user1\",\r\n    \"password\": \"Password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{backend_url}}/v1/auth/login/password",
+							"host": [
+								"{{backend_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"login",
+								"password"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Log In (Password)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"user1\",\r\n    \"password\": \"Password\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{backend_url}}/v1/auth/login/password",
+									"host": [
+										"{{backend_url}}"
+									],
+									"path": [
+										"v1",
+										"auth",
+										"login",
+										"password"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:8888"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1424"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"590-s22ZUJtgL8DZGkO3HH1AdJrQXo4\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 20 Jul 2024 03:48:22 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"Success\",\n    \"data\": {\n        \"lastLoginAt\": \"2024-07-20T03:48:22.089Z\",\n        \"loginCount\": 1,\n        \"loginFailedCount\": 0,\n        \"_id\": \"669b2eb83f9247d075b67b05\",\n        \"username\": \"user1\",\n        \"isDeleted\": false,\n        \"createdAt\": \"2024-07-20T03:27:52.504Z\",\n        \"updatedAt\": \"2024-07-20T03:48:22.093Z\",\n        \"token\": {\n            \"accessToken\": \"eyJhbGciOiJSUzI1NiJ9.eyJ1c2VySWQiOiI2NjliMmViODNmOTI0N2QwNzViNjdiMDUiLCJ1c2VybmFtZSI6InVzZXIxIiwic2NvcGUiOiJhY2Nlc3MiLCJpYXQiOjE3MjE0NDczMDIsImV4cCI6MTcyMTQ0ODIwMiwiaXNzIjoiYXBwX2JhY2tlbmQiLCJhdWQiOiJhcHBfZnJvbnRlbmQifQ.A_qxufvkDcuVw3oG16A0zDBa4eFNAfq1_lNWHdjkZtP6wroPUCSHxwUdKoV4So4rzGMPcognvPQCkiCMgvVQJqgpxQcfM18W2vPbj9y_lANkFz_TuiGRYDp5gsxCGzPammoBrylpuzBp2ljybA9m1jz6twxNPeuoTXKgU4YF1D8SOm4-iWGDTCwB3K2xU7ESFnBxcFvIXSJvjOAoxDKhlj3jrgcMv71ER0PNKRewGj4cA8i9eIPkun2Zs95wqHnr_AIkeTnvASDHn6PGKtEmKt7wL3CkbFaN_ZYX7JPc13wK4RoWS0BC8Rope5KZkZcHjWpAqeTa7W7Tivd3FG6XUA\",\n            \"refreshToken\": \"eyJhbGciOiJSUzI1NiJ9.eyJ1c2VySWQiOiI2NjliMmViODNmOTI0N2QwNzViNjdiMDUiLCJ1c2VybmFtZSI6InVzZXIxIiwic2NvcGUiOiJyZWZyZXNoIiwiaWF0IjoxNzIxNDQ3MzAyLCJleHAiOjE3MjIwNTIxMDIsImlzcyI6ImFwcF9iYWNrZW5kIiwiYXVkIjoiYXBwX2Zyb250ZW5kIn0.daK77FQOWEMCVdh6yqr8WXpDgzBHE3KnbPFWBC6bLOVTB3VbJuWOUhigOzl9fGBwI647i2bkDL5Es9ef5CGjo7iAIc7pkn2us7E06ch4UF5sJWMUEglDu0Wn3aM8LEMEJMvZ5iFXPC4kccFZaV7PDMq2d57eCqWELt3Dax4VVcYQ64qwVzvPLRqBMXXNnbZCt3ylRwfdaB_tvku668V_LWw1ki7nsYqsxmsJK35l81vmQahuzvHktz3XDvx0jD3fmonPKVdiHUISJekq5nwGzMa4fWc0Kd_BpmXfSYJxoOWU6NTa3hr0ibN2mrP_MVGJuyJZbypDzglrxs1oKvNbgQ\"\n        }\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Log Out",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{refresh_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{backend_url}}/v1/auth/logout",
+							"host": [
+								"{{backend_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{refresh_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{backend_url}}/v1/auth/refresh",
+							"host": [
+								"{{backend_url}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Refresh Token",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{refresh_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{backend_url}}/v1/auth/refresh",
+									"host": [
+										"{{backend_url}}"
+									],
+									"path": [
+										"v1",
+										"auth",
+										"refresh"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:8888"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1189"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"4a5-cKcsVGq53glRnd0auPVWlTjOJPo\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 20 Jul 2024 06:37:54 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"Success\",\n    \"data\": {\n        \"accessToken\": \"eyJhbGciOiJSUzI1NiJ9.eyJ1c2VySWQiOiI2NjliMmViODNmOTI0N2QwNzViNjdiMDUiLCJ1c2VybmFtZSI6InVzZXIxIiwic2NvcGUiOiJhY2Nlc3MiLCJpYXQiOjE3MjE0NTc0NzQsImV4cCI6MTcyMTQ1ODM3NCwiaXNzIjoiYXBwX2JhY2tlbmQiLCJhdWQiOiJhcHBfZnJvbnRlbmQifQ.pKvnCdSUeZchtxU_OutCNZ0S4y4tPQPkZcrAfbCa7iQAJyGuPx13tpVbbSs7GAPkrXeC9APOID-sYN1fXe6Nd3qJhr3TnG-sLy5okccD0dW892NUm4YTnCeGEkXUDjeIKBVkObI3NgC7nkap7idPK3Kv5odcGRNDTciMm74t72fXWJU-KigTobxd4pW959ZXOXGFvpZ-_McQjIdogOIXnooveDz2u_a3amLMu5Bf3Eqga56KRkbjvBWqSUe3B3eR1rlgegUmUuA9Tj2KqQwPF40IANx694gUsMTxf7Y96EFZJa3yT755CcYgmHcuvtEXvBqJonhtpMTd5Wf8RVl7gg\",\n        \"refreshToken\": \"eyJhbGciOiJSUzI1NiJ9.eyJ1c2VySWQiOiI2NjliMmViODNmOTI0N2QwNzViNjdiMDUiLCJ1c2VybmFtZSI6InVzZXIxIiwic2NvcGUiOiJyZWZyZXNoIiwiaWF0IjoxNzIxNDU3NDc0LCJleHAiOjE3MjIwNjIyNzQsImlzcyI6ImFwcF9iYWNrZW5kIiwiYXVkIjoiYXBwX2Zyb250ZW5kIn0.fTdZSnZ46QH17qe7gza48_StDD6A5svCRCbleoHSqLOQivvjcKHk_De5pvATGWyQnFsCUVIyuwdC_iRLMsxUiGGsqyGBnY2PS8V9vcujMB5xNWcY7DmWEeNN9Ins6RU2imeUeTqq1_CB3QVtlQHQbwFkgNbhcjvErXbxlLJTOdF9F7o5Sk4NkU6Ae4nPD84IDUoOdL00Uc1cxFDqTngNvTE9G-kYEHZE_o3JzLr4jYKNAwIzHyisuL4IvpOcaxbcW4leNCPztvWx7SKscVdJFqr36Pz9EPRCuqpWyTesV2HMwzo0N0VpyES_u5DOjgtCedvg0F97c_CakfQ8fmnDtQ\"\n    }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Test",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{backend_url}}/v1/auth/test",
+					"host": [
+						"{{backend_url}}"
+					],
+					"path": [
+						"v1",
+						"auth",
+						"test"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

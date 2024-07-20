@@ -1,6 +1,8 @@
 import responseUtils from "../common/utils/responseUtils.js";
-import { verifyAccessToken } from "../common/utils/authUtils.js";
+import userCrud from "../modules/user/cruds/userCrud.js";
+import userTokenCrud from "../modules/auth/cruds/userTokenCrud.js";
 import Joi from "joi";
+import { verifyAccessToken, verifyRefreshToken } from "../common/utils/authUtils.js";
 import { ValidationError, AuthorizationError } from "../common/exceptions/exceptions.js";
 import { log } from "../common/utils/loggingUtils.mjs";
 
@@ -35,26 +37,62 @@ function validateReqBody(JoiObject) {
  * @param {import('express').NextFunction} next - The next middleware function
  * @return {Promise<void>} - Promise that resolves when validation is complete
  */
-function validateSessionAndJwt() {
+function validateJwtAccessToken() {
     return async (req, res, next) => {
         try {
             // Check auth header
             const authHeader = req.headers['authorization'];
-
-            if (!authHeader) {
-                throw new AuthorizationError("No authorization token found");
+            const token = authHeader && authHeader.split(' ')[1];
+            if (!token) {
+                throw new AuthorizationError("Authorization access token not found");
             }
 
             // Verify access token
-            const accessToken = authHeader.split(' ')[1];
-            const payload = await verifyAccessToken(accessToken);
+            const payload = await verifyAccessToken(token);
 
-            // Check if session are still valid
-            if (!res.locals.user || !res.locals.session) {
-                throw new AuthorizationError("No session found");
+            // Store userId in req object
+            const user = await userCrud.findUserById(payload.userId);
+            req.userId = user._id;
+
+            // Lucia Session
+            // // Check if session are still valid
+            // if (!res.locals.user || !res.locals.session) {
+            //     throw new AuthorizationError("No session found");
+            // }
+
+            next();
+        }
+        catch (error) {
+            return responseUtils.errorHandler(res, error);
+        }
+    }
+}
+
+function validateJwtRefreshToken() {
+    return async (req, res, next) => {
+        try {
+            // Check auth header
+            const authHeader = req.headers['authorization'];
+            const token = authHeader && authHeader.split(' ')[1];
+            if (!token) {
+                throw new AuthorizationError("Authorization refresh token not found");
             }
 
-            req.user = payload;
+            // Check if refresh token is valid
+            const refreshToken = await userTokenCrud.getUserTokenByRefreshToken(token);
+
+            // Verify access token
+            const payload = await verifyRefreshToken(refreshToken.refreshToken);
+
+            // Store userId in req object
+            const user = await userCrud.findUserById(payload.userId);
+            req.userId = user._id;
+
+            // Lucia Session
+            // // Check if session are still valid
+            // if (!res.locals.user || !res.locals.session) {
+            //     throw new AuthorizationError("No session found");
+            // }
 
             next();
         }
@@ -82,4 +120,4 @@ function validateAPIKey() {
     }
 }
 
-export { validateReqBody, validateSessionAndJwt, validateAPIKey }
+export { validateReqBody, validateJwtAccessToken, validateJwtRefreshToken, validateAPIKey }

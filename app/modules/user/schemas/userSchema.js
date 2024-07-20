@@ -20,6 +20,21 @@ const userSchema = new Schema({
     required: false,
     default: "",
   },
+  lastLoginAt: {
+    type: Date,
+    required: false,
+    default: Date.now(),
+  },
+  loginCount: {
+    type: Number,
+    required: false,
+    default: 0,
+  },
+  loginFailedCount: {
+    type: Number,
+    required: false,
+    default: 0,
+  }
 });
 
 userSchema.add(BaseSchema);

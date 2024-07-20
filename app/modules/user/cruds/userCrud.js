@@ -1,6 +1,7 @@
 import User from "../schemas/userSchema.js";
 import { NotFoundError, ExistedError } from "../../../common/exceptions/exceptions.js";
 
+const userFilter = { __v: 0, createdBy: 0, updatedBy: 0, passwordHash: 0, passwordSalt: 0 }
 export default {
     // Common crud functions
     async createUser(username, body) {
@@ -10,12 +11,14 @@ export default {
             throw new ExistedError("User exists");
         }
 
-        const user = User.create(body);
+        const newUser = await User.create(body);
+        const user = await User.findById(newUser._id, userFilter);
+
         return user;
     },
 
     async findUserById(userId) {
-        const user = await User.findById(userId);
+        const user = await User.findById(userId, userFilter);
 
         if (!user) {
             throw new NotFoundError("User not found");
@@ -25,7 +28,7 @@ export default {
     },
 
     async findUserByKey(body) {
-        const user = await User.findOne({ ...body, isDeleted: false }, { __v: 0, createdBy: 0, updatedBy: 0, hashedPassword: 0 });
+        const user = await User.findOne({ ...body, isDeleted: false }, userFilter);
 
         if (!user) {
             throw new NotFoundError("User not found");

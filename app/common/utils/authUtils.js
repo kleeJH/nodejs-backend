@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import userTokenCrud from "../../modules/auth/cruds/userTokenCrud.js";
 import { jwtVerify, SignJWT, importPKCS8, importSPKI } from "jose";
 import { hashSync, verifySync } from "@node-rs/argon2";
 import { publicEncrypt, privateDecrypt, randomBytes } from "crypto";
@@ -166,6 +167,7 @@ async function generateAccessToken(user) {
 
   // Define the payload for the token
   const accessPayload = {
+    userId: user._id,
     username: user.username,
     scope: 'access'
   };
@@ -198,6 +200,7 @@ async function generateRefreshToken(user) {
 
   // Define the payload for the token
   const refreshPayload = {
+    userId: user._id,
     username: user.username,
     scope: 'refresh'
   };
@@ -213,6 +216,8 @@ async function generateRefreshToken(user) {
     .setIssuer(process.env.ISSUER)
     .setAudience(process.env.AUDIENCE)
     .sign(refreshTokenPrivateKey);
+
+  await userTokenCrud.createUserToken({ refreshToken: refreshToken, createdBy: user._id, updatedBy: user._id });
 
   return refreshToken;
 }
@@ -260,9 +265,10 @@ async function verifyRefreshToken(refreshToken) {
       audience: process.env.AUDIENCE,
     });
 
+    await userTokenCrud.invalidateAllUserTokensByUserId(payload.userId);
+
     return payload;
   } catch (error) {
-    log.error(error.message);
     throw new AuthorizationError("Invalid refresh token");
   }
 }

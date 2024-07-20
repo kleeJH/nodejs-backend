@@ -4,9 +4,10 @@ import { generateAccessToken, generateRefreshToken } from "../../../common/utils
 import { validateUsername, validatePassword, validateAndSaltHashPassword, verifyPassword } from "../../../common/utils/authUtils.js";
 import { log } from "../../../common/utils/loggingUtils.mjs";
 // import { lucia } from "../../../lib/lucia.js";
-import { AuthenticationError, AuthorizationError } from "../../../common/exceptions/exceptions.js";
+import { AuthenticationError } from "../../../common/exceptions/exceptions.js";
+import userTokenCrud from "../cruds/userTokenCrud.js";
 
-// TODO: JWT Invalidate after logout
+// TODO: JWT Refresh token Invalidate after logout
 // TODO: User Group Access Control & Module Access Control
 // TODO: Regenerate refresh token
 
@@ -18,7 +19,7 @@ export default {
    * @param {import('express').Response} res - The response object.
    * @return {Promise<void>} A promise that resolves when the user is signed up.
    */
-  async signUp(req, res) {
+  async signUpPassword(req, res) {
     try {
       const username = validateUsername(req.body.username);
       const passwordPayload = validateAndSaltHashPassword(req.body.password);
@@ -43,7 +44,7 @@ export default {
    * @param {import('express').Response} res - The response object.
    * @return {Promise<void>} A promise that resolves when the user is logged in.
    */
-  async logIn(req, res) {
+  async logInPassword(req, res) {
     try {
       const username = validateUsername(req.body.username);
       const passwordUnhashed = validatePassword(req.body.password);
@@ -51,9 +52,16 @@ export default {
       let user = await userCrud.findUserByKey({ username: username });
 
       if (!verifyPassword(passwordUnhashed, user.hashedPassword)) {
+        user.loginFailedCount += 1;
+        await user.save();
         throw new AuthenticationError("Invalid username or password");
       }
 
+      // Update user
+      user.lastLoginAt = new Date();
+      user.loginCount += 1;
+      user.loginFailedCount = 0;
+      await user.save();
 
       const tokenPayload = {
         accessToken: await generateAccessToken(user),
@@ -76,23 +84,22 @@ export default {
   },
 
   /**
-   * Logs out the user by invalidating the session and redirecting to the login page.
+   * Logs out the user by invalidating the refresh token and redirecting to the login page.
    *
-   * @param {Object} req - The request object.
-   * @param {Object} res - The response object.
+   * @param {import('express').Request} req - The request object.
+   * @param {import('express').Response} res - The response object.
    * @return {Promise<void>} A promise that resolves when the user is logged out.
    */
   async logOut(req, res) {
     try {
-      if (!res.locals.session) { // res or req?
-        throw new AuthorizationError("Session not found");
-      }
+      // // Lucia Session
+      // if (res.locals.session) {
+      //   await lucia.invalidateSession(res.locals.session.id);
+      //   res.setHeader("Set-Cookie", lucia.createBlankSessionCookie().serialize());
+      // }
 
-      // Lucia Session
-      // await lucia.invalidateSession(res.locals.session.id);
-      // res.setHeader("Set-Cookie", lucia.createBlankSessionCookie().serialize());
-
-      // TODO: Invalidate Refresh Token
+      // Invalidate refresh token
+      await userTokenCrud.invalidateAllUserTokensByUserId(req.userId);
 
       responseUtils.successHandler(res, "Logged out successfully");
     } catch (error) {
@@ -100,8 +107,34 @@ export default {
     }
   },
 
+  /**
+   * Refreshes the user's access token and generates a new refresh token.
+   *
+   * @param {import('express').Request} req - The request object.
+   * @param {import('express').Response} res - The response object.
+   * @return {Promise<void>} A promise that resolves when the refresh is complete.
+   */
+  async refreshToken(req, res) {
+    try {
+      const user = await userCrud.findUserById(req.userId);
+
+      // Invalidate refresh token
+      await userTokenCrud.invalidateAllUserTokensByUserId(user._id);
+
+      const tokenPayload = {
+        accessToken: await generateAccessToken(user),
+        refreshToken: await generateRefreshToken(user)
+      }
+
+      responseUtils.successHandler(res, tokenPayload);
+    } catch (error) {
+      responseUtils.errorHandler(res, error);
+    }
+  },
+
   async test(req, res) {
     try {
+      console.log(req.userId)
       responseUtils.successHandler(res, 'test');
     } catch (error) {
       responseUtils.errorHandler(res, error);
