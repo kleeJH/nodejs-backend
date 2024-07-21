@@ -1,11 +1,8 @@
+import { ROLE_TYPE } from "../../../common/enums/authEnumTypes.js";
 import BaseSchema from "../../../common/schemas/baseSchema.js";
 import { Schema, model, Types } from "mongoose";
 
 const userSchema = new Schema({
-  _id: {
-    type: Schema.Types.ObjectId,
-    default: Types.ObjectId,
-  },
   username: {
     type: String,
     required: true,
@@ -19,6 +16,12 @@ const userSchema = new Schema({
     type: String,
     required: false,
     default: "",
+  },
+  roleName: {
+    type: String,
+    required: true,
+    default: ROLE_TYPE.USER,
+    enum: Object.values(ROLE_TYPE),
   },
   lastLoginAt: {
     type: Date,

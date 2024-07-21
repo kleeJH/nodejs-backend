@@ -1,10 +1,12 @@
 import chalk from "chalk";
 import database from "../app/lib/database.js";
 import roleCrud from "../app/modules/auth/cruds/roleCrud.js";
+import moduleCrud from "../app/modules/auth/cruds/moduleCrud.js";
 import permissionCrud from "../app/modules/auth/cruds/permissionCrud.js";
-import rolePermissionCrud from "../app/modules/auth/cruds/rolePermissionCrud.js";
+import roleModuleCrud from "../app/modules/auth/cruds/roleModuleCrud.js";
+import modulePermissionCrud from "../app/modules/auth/cruds/modulePermissionCrud.js";
 import { generateGenericMongoId } from "../app/common/utils/helperUtils.js";
-import { ROLE_TYPE, PERMISSION } from "../app/common/enums/authEnumTypes.js";
+import { ROLE_TYPE, MODULE_TYPE, PERMISSION } from "../app/common/enums/authEnumTypes.js";
 
 database.connect();
 
@@ -12,16 +14,20 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 await deleteAllData();
 await initRoles();
+await initModules();
 await initPermissions();
-await initRolePermissions();
+await initRoleModules();
+await initModulePermissions();
 await initExit();
 
 async function deleteAllData() {
     try {
-        console.log(`[${chalk.cyan("!")}] `, "Starting initRolePermissions.js...");
-        await rolePermissionCrud.deleteAllRolePermissions();
-        await roleCrud.deleteAllRoles();
+        console.log(`[${chalk.cyan("!")}] `, "Starting initRoleModulePermissions.js...");
+        await modulePermissionCrud.deleteAllModulePermissions();
+        await roleModuleCrud.deleteAllRoleModules();
         await permissionCrud.deleteAllPermissions();
+        await moduleCrud.deleteAllModules();
+        await roleCrud.deleteAllRoles();
     } catch (err) {
         console.log(`[${chalk.red("✗")}] `, "deleteAllData Error: ", err.message);
         process.exit(1);
@@ -52,6 +58,42 @@ async function initRoles() {
         )
         .catch((err) => {
             console.log(`[${chalk.red("✗")}] `, "initRoles Error: ", err.message);
+            process.exit(1);
+        });
+}
+
+async function initModules() {
+    const batchModules = [
+        {
+            _id: generateGenericMongoId("1"),
+            name: MODULE_TYPE.USER_GENERAL_MODULE,
+            description: "User general module"
+        },
+        {
+            _id: generateGenericMongoId("2"),
+            name: MODULE_TYPE.ADMIN_GENERAL_MODULE,
+            description: "Admin general module"
+        },
+        {
+            _id: generateGenericMongoId("3"),
+            name: MODULE_TYPE.USER_AUTH_MODULE,
+            description: "User auth module"
+        },
+        {
+            _id: generateGenericMongoId("4"),
+            name: MODULE_TYPE.ADMIN_AUTH_MODULE,
+            description: "Admin auth module"
+        },
+    ];
+
+    await moduleCrud.batchCreateModules(batchModules)
+        .then(
+            (msg) => {
+                console.log(`[${chalk.green("✓")}] `, msg);
+            }
+        )
+        .catch((err) => {
+            console.log(`[${chalk.red("✗")}] `, "initModules Error: ", err.message);
             process.exit(1);
         });
 }
@@ -158,10 +200,68 @@ async function initPermissions() {
         });
 }
 
-async function initRolePermissions() {
-    const batchRolePermissions = [
+async function initRoleModules() {
+    const batchRoleModules = [
+        {
+            roleName: ROLE_TYPE.USER,
+            moduleName: MODULE_TYPE.USER_GENERAL_MODULE
+        },
+        {
+            roleName: ROLE_TYPE.USER,
+            moduleName: MODULE_TYPE.USER_AUTH_MODULE
+        },
         {
             roleName: ROLE_TYPE.ADMIN,
+            moduleName: MODULE_TYPE.ADMIN_GENERAL_MODULE
+        },
+        {
+            roleName: ROLE_TYPE.ADMIN,
+            moduleName: MODULE_TYPE.ADMIN_AUTH_MODULE
+        },
+    ]
+
+    await roleModuleCrud.batchCreateRoleModules(batchRoleModules)
+        .then(
+            (msg) => {
+                console.log(`[${chalk.green("✓")}] `, msg);
+            }
+        )
+        .catch((err) => {
+            console.log(`[${chalk.red("✗")}] `, "initRoleModules Error: ", err.message);
+            process.exit(1);
+        });
+}
+
+async function initModulePermissions() {
+    const batchModulePermissions = [
+        {
+            moduleName: MODULE_TYPE.USER_GENERAL_MODULE,
+            permissions: [
+                PERMISSION.READ_USER,
+                PERMISSION.READ_ROLE
+            ]
+        },
+        {
+            moduleName: MODULE_TYPE.USER_AUTH_MODULE,
+            permissions: [
+                PERMISSION.READ_USER,
+                PERMISSION.READ_ROLE,
+                PERMISSION.READ_PERMISSION,
+                PERMISSION.READ_ROLE_PERMISSION
+            ]
+        },
+        {
+            moduleName: MODULE_TYPE.ADMIN_GENERAL_MODULE,
+            permissions: [
+                PERMISSION.READ_USER,
+                PERMISSION.CREATE_USER,
+                PERMISSION.UPDATE_USER,
+                PERMISSION.DELETE_USER,
+                PERMISSION.READ_ROLE
+            ]
+        },
+        {
+            moduleName: MODULE_TYPE.ADMIN_AUTH_MODULE,
             permissions: [
                 PERMISSION.READ_USER,
                 PERMISSION.CREATE_USER,
@@ -181,31 +281,22 @@ async function initRolePermissions() {
                 PERMISSION.DELETE_ROLE_PERMISSION
             ]
         },
-        {
-            roleName: ROLE_TYPE.USER,
-            permissions: [
-                PERMISSION.READ_USER,
-                PERMISSION.READ_ROLE,
-                PERMISSION.READ_PERMISSION,
-                PERMISSION.READ_ROLE_PERMISSION
-            ]
-        }
     ]
 
-    await rolePermissionCrud.batchCreateRolePermissions(batchRolePermissions)
+    await modulePermissionCrud.batchCreateModulePermissions(batchModulePermissions)
         .then(
             (msg) => {
                 console.log(`[${chalk.green("✓")}] `, msg);
             }
         )
         .catch((err) => {
-            console.log(`[${chalk.red("✗")}] `, "initRolePermissions Error: ", err.message);
+            console.log(`[${chalk.red("✗")}] `, "initModulePermissions Error: ", err.message);
             process.exit(1);
         });
 }
 
 async function initExit() {
     await sleep(1000);
-    console.log(`[${chalk.cyan("!")}] `, "Ended initRolePermissions.js");
+    console.log(`[${chalk.cyan("!")}] `, "Ended initRoleModulePermissions.js");
     process.exit(0);
 }

@@ -1,10 +1,10 @@
 import BaseSchema from "../../../common/schemas/baseSchema.js";
 import { Schema, model, Types } from "mongoose";
 
-const rolePermissionSchema = new Schema({
-    roleId: {
+const modulePermissionSchema = new Schema({
+    moduleId: {
         type: Types.ObjectId,
-        ref: "roles",
+        ref: "modules",
         required: true
     },
     permissionId: {
@@ -19,7 +19,7 @@ const rolePermissionSchema = new Schema({
     }
 });
 
-rolePermissionSchema.add(BaseSchema);
+modulePermissionSchema.add(BaseSchema);
 
-const RolePermission = model("rolepermissions", rolePermissionSchema);
-export default RolePermission;
+const ModulePermission = model("rolepermissions", modulePermissionSchema);
+export default ModulePermission;

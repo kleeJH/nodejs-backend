@@ -3,6 +3,13 @@ export const ROLE_TYPE = {
     ADMIN: "admin"
 }
 
+export const MODULE_TYPE = {
+    USER_GENERAL_MODULE: "user_general_module",
+    ADMIN_GENERAL_MODULE: "admin_general_module",
+    USER_AUTH_MODULE: "user_auth_module",
+    ADMIN_AUTH_MODULE: "admin_auth_module"
+}
+
 export const PERMISSION = {
     // USER
     READ_USER: "read_user",

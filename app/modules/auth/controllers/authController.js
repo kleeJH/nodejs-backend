@@ -6,9 +6,9 @@ import { log } from "../../../common/utils/loggingUtils.mjs";
 // import { lucia } from "../../../lib/lucia.js";
 import { AuthenticationError } from "../../../common/exceptions/exceptions.js";
 import userTokenCrud from "../cruds/userTokenCrud.js";
+import { ROLE_TYPE } from "../../../common/enums/authEnumTypes.js";
 
-// TODO: User Group Access Control & Module Access Control
-// TODO: Regenerate refresh token
+// TODO: Check role permission on user
 
 export default {
   /**
@@ -23,7 +23,7 @@ export default {
       const username = validateUsername(req.body.username);
       const passwordPayload = validateAndSaltHashPassword(req.body.password);
 
-      const signedUpUser = await userCrud.createUser(username, { username: username, ...passwordPayload }); // Check if username exists in here
+      const signedUpUser = await userCrud.createUser(username, { username: username, roleName: ROLE_TYPE.USER, isActive: true, ...passwordPayload }); // Check if username exists in here
       log.info(`User ${username} with id [${signedUpUser._id}] has been created.`);
 
       // Lucia Session

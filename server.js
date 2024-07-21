@@ -99,11 +99,13 @@ database.connect();
 
 // ##########################################################################
 // Cronjob Imports
+import { startDatabaseBackupCron } from "./app/cronjob/databaseBackup.js";
 // ##########################################################################
 
 
 // ##########################################################################
 // Cronjobs
+startDatabaseBackupCron();
 // ##########################################################################
 
 
@@ -125,6 +127,6 @@ app.use("/v1/auth", authRouter);
 // Run Backend
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`[${chalk.green("✓")}] Server is running on port ${chalk.cyan(PORT)} with ${chalk.magenta(process.env.NODE_ENV.toUpperCase())} environment.`);
+  console.log(`[${chalk.green("✓")}]`, `Server is running on port ${chalk.cyan(PORT)} with ${chalk.magenta(process.env.NODE_ENV.toUpperCase())} environment.`);
 });
 // ##########################################################################
