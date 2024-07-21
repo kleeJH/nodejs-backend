@@ -16,4 +16,7 @@
 - uat: `pm2 start server.config.cjs --env uat`
 - production: `pm2 start server.config.cjs --env production`
 
+### Environment Variables (.env)
+Check `.env.sample` for the configurations needed for this repository 
+
 ## Troubleshooting

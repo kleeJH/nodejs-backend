@@ -8,8 +8,6 @@ import { AuthenticationError } from "../../../common/exceptions/exceptions.js";
 import userTokenCrud from "../cruds/userTokenCrud.js";
 import { ROLE_TYPE } from "../../../common/enums/authEnumTypes.js";
 
-// TODO: Check role permission on user
-
 export default {
   /**
    * Signs up a user.

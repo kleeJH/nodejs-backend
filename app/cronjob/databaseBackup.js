@@ -3,6 +3,7 @@ import cron from "cron";
 import chalk from "chalk";
 import { exec } from "child_process";
 import { log } from "../common/utils/loggingUtils.mjs";
+
 dotenv.config();
 
 const isActive = process.env.CRONJOB_ACTIVE.toLowerCase() === "true";
