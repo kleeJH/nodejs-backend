@@ -26,7 +26,7 @@ export default {
 
     async getModulesByRoleName(roleName) {
         const role = await roleCrud.getRoleByName(roleName);
-        const roleModules = await RoleModule.find({ roleId: role._id }).populate("moduleId");
+        const roleModules = await RoleModule.find({ roleId: role._id }).populate("roleId", { _id: 1, name: 1, isAdmin: 1, isActive: 1, isDeleted: 1 }).populate("moduleId", { _id: 1, name: 1, isActive: 1, isDeleted: 1 });
         if (!roleModules && roleModules.length === 0) {
             throw new NotFoundError("Modules not found");
         }

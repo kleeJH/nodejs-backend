@@ -1,7 +1,9 @@
+
 import { Router } from "express";
 import authController from "../../modules/auth/controllers/authController.js";
 import authValidations from "../../validations/authValidations.js";
-import { validateReqBody, validateJwtAccessToken, validateJwtRefreshToken } from "../../middlewares/authMiddleware.js";
+import { validateReqBody, validateJwtAccessToken, validateJwtRefreshToken, validateModulePermission } from "../../middlewares/authMiddleware.js";
+import { MODULE_TYPE } from "../../common/enums/authEnumTypes.js";
 
 const authRouter = Router();
 
@@ -10,7 +12,7 @@ authRouter.post("/login/password", validateReqBody(authValidations.logIn), authC
 authRouter.get("/refresh", validateJwtRefreshToken(), authController.refreshToken);
 authRouter.post("/logout", validateJwtRefreshToken(), authController.logOut);
 
-authRouter.get("/test", validateJwtAccessToken(), authController.test);
+authRouter.get("/test", [validateJwtAccessToken(), validateModulePermission(MODULE_TYPE.USER_AUTH_MODULE)], authController.test);
 
 
 export default authRouter;

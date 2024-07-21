@@ -1,10 +1,12 @@
+import Joi from "joi";
 import responseUtils from "../common/utils/responseUtils.js";
 import userCrud from "../modules/user/cruds/userCrud.js";
 import userTokenCrud from "../modules/auth/cruds/userTokenCrud.js";
-import Joi from "joi";
+import roleModuleCrud from "../modules/auth/cruds/roleModuleCrud.js";
 import { verifyAccessToken, verifyRefreshToken } from "../common/utils/authUtils.js";
-import { ValidationError, AuthorizationError } from "../common/exceptions/exceptions.js";
+import { ValidationError, AuthorizationError, DeveloperError } from "../common/exceptions/exceptions.js";
 import { log } from "../common/utils/loggingUtils.mjs";
+import { MODULE_TYPE, ROLE_TYPE } from "../common/enums/authEnumTypes.js";
 
 /**
  * Validates the request body using the provided Joi object.
@@ -120,4 +122,59 @@ function validateAPIKey() {
     }
 }
 
-export { validateReqBody, validateJwtAccessToken, validateJwtRefreshToken, validateAPIKey }
+/**
+ * Validates user permission for accessing specific modules.
+ *
+ * @param {String | Array<String>} moduleNames - Array of module names to validate permission for
+ * @return {Promise} Promise that resolves if permission is granted, otherwise throws an error
+ */
+function validateModulePermission(moduleNames = []) {
+    return async (req, res, next) => {
+        try {
+            const user = await userCrud.findUserById(req.userId);
+            // TODO: Can check if user role has been disabled or deleted here
+            if (user.roleName === ROLE_TYPE.ADMIN) {
+                return next();
+            }
+
+            // Check for string
+            if (typeof (moduleNames) == "string") {
+                moduleNames = [moduleNames];
+            }
+
+            if (moduleNames.length > 0) {
+                const roleModules = await roleModuleCrud.getModulesByRoleName(user.roleName);
+                for (const moduleName of moduleNames) {
+                    if (!Object.values(MODULE_TYPE).includes(moduleName)) {
+                        throw new AuthorizationError("Invalid module name");
+                    }
+
+                    let roleModule = null;
+                    if (!roleModules.find(elem => {
+                        if (elem.moduleId.name === moduleName) {
+                            roleModule = elem;
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    })) {
+                        throw new AuthorizationError("You don't have permission to access this module");
+                    }
+
+                    if (roleModule.moduleId.isDeleted) {
+                        throw new AuthorizationError("Module has been deleted");
+                    } else if (!roleModule.moduleId.isActive) {
+                        throw new AuthorizationError("Module has been deactivated");
+                    }
+                }
+            }
+
+            next();
+        }
+        catch (error) {
+            return responseUtils.errorHandler(res, error);
+        }
+    }
+}
+
+export { validateReqBody, validateJwtAccessToken, validateJwtRefreshToken, validateAPIKey, validateModulePermission }
