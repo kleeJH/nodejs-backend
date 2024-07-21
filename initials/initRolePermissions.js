@@ -1,7 +1,8 @@
 import chalk from "chalk";
 import database from "../app/lib/database.js";
-import roleCrud from "../app/modules/user/cruds/roleCrud.js";
-import permissionCrud from "../app/modules/user/cruds/permissionCrud.js";
+import roleCrud from "../app/modules/auth/cruds/roleCrud.js";
+import permissionCrud from "../app/modules/auth/cruds/permissionCrud.js";
+import rolePermissionCrud from "../app/modules/auth/cruds/rolePermissionCrud.js";
 import { generateGenericMongoId } from "../app/common/utils/helperUtils.js";
 import { ROLE_TYPE, PERMISSION } from "../app/common/enums/authEnumTypes.js";
 
@@ -12,10 +13,13 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 await deleteAllData();
 await initRoles();
 await initPermissions();
+await initRolePermissions();
 await initExit();
 
 async function deleteAllData() {
     try {
+        console.log(`[${chalk.cyan("!")}] `, "Starting initRolePermissions.js...");
+        await rolePermissionCrud.deleteAllRolePermissions();
         await roleCrud.deleteAllRoles();
         await permissionCrud.deleteAllPermissions();
     } catch (err) {
@@ -154,9 +158,54 @@ async function initPermissions() {
         });
 }
 
-// TODO: add role permission
+async function initRolePermissions() {
+    const batchRolePermissions = [
+        {
+            roleName: ROLE_TYPE.ADMIN,
+            permissions: [
+                PERMISSION.READ_USER,
+                PERMISSION.CREATE_USER,
+                PERMISSION.UPDATE_USER,
+                PERMISSION.DELETE_USER,
+                PERMISSION.READ_ROLE,
+                PERMISSION.CREATE_ROLE,
+                PERMISSION.UPDATE_ROLE,
+                PERMISSION.DELETE_ROLE,
+                PERMISSION.READ_PERMISSION,
+                PERMISSION.CREATE_PERMISSION,
+                PERMISSION.UPDATE_PERMISSION,
+                PERMISSION.DELETE_PERMISSION,
+                PERMISSION.READ_ROLE_PERMISSION,
+                PERMISSION.CREATE_ROLE_PERMISSION,
+                PERMISSION.UPDATE_ROLE_PERMISSION,
+                PERMISSION.DELETE_ROLE_PERMISSION
+            ]
+        },
+        {
+            roleName: ROLE_TYPE.USER,
+            permissions: [
+                PERMISSION.READ_USER,
+                PERMISSION.READ_ROLE,
+                PERMISSION.READ_PERMISSION,
+                PERMISSION.READ_ROLE_PERMISSION
+            ]
+        }
+    ]
+
+    await rolePermissionCrud.batchCreateRolePermissions(batchRolePermissions)
+        .then(
+            (msg) => {
+                console.log(`[${chalk.green("✓")}] `, msg);
+            }
+        )
+        .catch((err) => {
+            console.log(`[${chalk.red("✗")}] `, "initRolePermissions Error: ", err.message);
+            process.exit(1);
+        });
+}
 
 async function initExit() {
     await sleep(1000);
+    console.log(`[${chalk.cyan("!")}] `, "Ended initRolePermissions.js");
     process.exit(0);
 }
