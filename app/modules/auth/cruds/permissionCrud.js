@@ -16,6 +16,14 @@ export default {
         return await Permission.find();
     },
 
+    async getPermissionListByNames(names) {
+        const permissions = await Permission.find({ name: { $in: names } });
+        if (!permissions) {
+            throw new NotFoundError("Permissions not found");
+        }
+        return permissions;
+    },
+
     async getPermissionByName(name) {
         const permission = await Permission.findOne({ name });
         if (!permission) {

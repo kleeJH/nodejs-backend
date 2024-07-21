@@ -22,14 +22,14 @@ await initExit();
 
 async function deleteAllData() {
     try {
-        console.log(`[${chalk.cyan("!")}] `, "Starting initRoleModulePermissions.js...");
+        console.log(`[${chalk.cyan("!")}]`, "Starting initRoleModulePermissions.js...");
         await modulePermissionCrud.deleteAllModulePermissions();
         await roleModuleCrud.deleteAllRoleModules();
         await permissionCrud.deleteAllPermissions();
         await moduleCrud.deleteAllModules();
         await roleCrud.deleteAllRoles();
     } catch (err) {
-        console.log(`[${chalk.red("✗")}] `, "deleteAllData Error: ", err.message);
+        console.log(`[${chalk.red("✗")}]`, "deleteAllData Error:", err.message);
         process.exit(1);
     }
 }
@@ -40,7 +40,7 @@ async function initRoles() {
             _id: generateGenericMongoId("1"),
             name: ROLE_TYPE.ADMIN,
             description: "Admin role",
-            isAdmin: true
+            isAdmin: true,
         },
         {
             _id: generateGenericMongoId("2"),
@@ -53,11 +53,11 @@ async function initRoles() {
     await roleCrud.batchCreateRoles(batchRoles)
         .then(
             (msg) => {
-                console.log(`[${chalk.green("✓")}] `, msg);
+                console.log(`[${chalk.green("✓")}]`, msg);
             }
         )
         .catch((err) => {
-            console.log(`[${chalk.red("✗")}] `, "initRoles Error: ", err.message);
+            console.log(`[${chalk.red("✗")}]`, "initRoles Error:", err.message);
             process.exit(1);
         });
 }
@@ -89,11 +89,11 @@ async function initModules() {
     await moduleCrud.batchCreateModules(batchModules)
         .then(
             (msg) => {
-                console.log(`[${chalk.green("✓")}] `, msg);
+                console.log(`[${chalk.green("✓")}]`, msg);
             }
         )
         .catch((err) => {
-            console.log(`[${chalk.red("✗")}] `, "initModules Error: ", err.message);
+            console.log(`[${chalk.red("✗")}]`, "initModules Error:", err.message);
             process.exit(1);
         });
 }
@@ -191,11 +191,11 @@ async function initPermissions() {
     await permissionCrud.batchCreatePermissions(batchPermissions)
         .then(
             (msg) => {
-                console.log(`[${chalk.green("✓")}] `, msg);
+                console.log(`[${chalk.green("✓")}]`, msg);
             }
         )
         .catch((err) => {
-            console.log(`[${chalk.red("✗")}] `, "initPermissions Error: ", err.message);
+            console.log(`[${chalk.red("✗")}]`, "initPermissions Error:", err.message);
             process.exit(1);
         });
 }
@@ -223,11 +223,11 @@ async function initRoleModules() {
     await roleModuleCrud.batchCreateRoleModules(batchRoleModules)
         .then(
             (msg) => {
-                console.log(`[${chalk.green("✓")}] `, msg);
+                console.log(`[${chalk.green("✓")}]`, msg);
             }
         )
         .catch((err) => {
-            console.log(`[${chalk.red("✗")}] `, "initRoleModules Error: ", err.message);
+            console.log(`[${chalk.red("✗")}]`, "initRoleModules Error:", err.message);
             process.exit(1);
         });
 }
@@ -286,17 +286,17 @@ async function initModulePermissions() {
     await modulePermissionCrud.batchCreateModulePermissions(batchModulePermissions)
         .then(
             (msg) => {
-                console.log(`[${chalk.green("✓")}] `, msg);
+                console.log(`[${chalk.green("✓")}]`, msg);
             }
         )
         .catch((err) => {
-            console.log(`[${chalk.red("✗")}] `, "initModulePermissions Error: ", err.message);
+            console.log(`[${chalk.red("✗")}]`, "initModulePermissions Error:", err.message);
             process.exit(1);
         });
 }
 
 async function initExit() {
     await sleep(1000);
-    console.log(`[${chalk.cyan("!")}] `, "Ended initRoleModulePermissions.js");
+    console.log(`[${chalk.cyan("!")}]`, "Ended initRoleModulePermissions.js");
     process.exit(0);
 }
