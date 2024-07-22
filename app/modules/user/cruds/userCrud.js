@@ -3,7 +3,6 @@ import { NotFoundError, ExistedError } from "../../../common/exceptions/exceptio
 
 const userFilter = { __v: 0, createdBy: 0, updatedBy: 0, passwordHash: 0, passwordSalt: 0 }
 export default {
-    // Common crud functions
     async createUser(username, body) {
 
         const foundUser = await User.findOne({ username, isDeleted: false });
@@ -37,8 +36,27 @@ export default {
         return user;
     },
 
-    async updateUserById(userId, data) {
-        const user = await User.findByIdAndUpdate(userId, data, { new: true });
+    async updateUserById(id, body) {
+        const user = await User.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+
+        if (!user) {
+            throw new NotFoundError("User not found");
+        }
+
+        return user;
+    },
+
+    async incrementCountById(id, field) {
+        // field use {fieldName: incrementCount}
+        const user = await User.findByIdAndUpdate(
+            id,
+            { $inc: field },
+            { new: true, runValidators: true });
+
+        if (!user) {
+            throw new NotFoundError("User not found");
+        }
+
         return user;
     },
 
@@ -51,7 +69,6 @@ export default {
 
     },
 
-    // Specific crud functions
     async checkUserExists(username) {
         const user = await User.findOne({ username, isDeleted: false });
 

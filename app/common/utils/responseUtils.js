@@ -13,7 +13,7 @@ import {
     AuthorizationError,
     UserInputError
 } from "../exceptions/exceptions.js";
-import { logger } from "./loggingUtils.mjs";
+import { log } from "./loggingUtils.mjs";
 
 // Success Responses
 const SuccessWithoutData = (res) => {
@@ -26,7 +26,7 @@ const SuccessWithData = (res, data) => {
 
 // Error Responses
 const DefaultErrorResponse = (res, responseCode, error) => {
-    logger.error(error.stack);
+    log.error(error.stack);
 
     if (error.messages) {
         return res.status(responseCode).send({ status: error.status, errors: error.messages });
@@ -36,7 +36,7 @@ const DefaultErrorResponse = (res, responseCode, error) => {
 }
 
 const ExternalServiceErrorResponse = (res, error) => {
-    logger.error(error.stack);
+    log.error(error.stack);
     return res.status(500).send({ status: error.status, serviceName: error.serviceName, error: error.message });
 }
 
