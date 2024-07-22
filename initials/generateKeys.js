@@ -39,6 +39,10 @@ async function generateRSA2048AndSaveKeyPair(keyPairName) {
     console.log('RSA2048 Public and private keys have been saved as PEM files.');
 }
 
+// Create the 'keys' directory if it doesn't exist
+fs.existsSync('./keys') || fs.mkdirSync('./keys');
+
+// Generate and save the key pairs 
 generateRS256AndSaveKeyPair('access_token').catch(console.error);
 generateRS256AndSaveKeyPair('refresh_token').catch(console.error);
 generateRSA2048AndSaveKeyPair('rsa_oaep_2048').catch(console.error);

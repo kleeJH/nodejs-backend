@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "init": "echo \"Error: no test specified\" && exit 1",
+    "init": "node ./initials/generateKeys.js && node ./initials/initRoleModulePermissions.js",
     "start": "nodemon server.ts"
   },
   "author": "Kevin Lee",

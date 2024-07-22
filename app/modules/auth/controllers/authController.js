@@ -44,11 +44,11 @@ export default {
   async logInPassword(req, res) {
     try {
       const username = validateUsername(req.body.username);
-      const passwordUnhashed = validatePassword(req.body.password);
+      const userDecryptedPassword = validatePassword(req.body.password);
 
       let user = await userCrud.findUserByKey({ username: username });
 
-      if (!verifyPassword(passwordUnhashed, user.hashedPassword)) {
+      if (!verifyPassword(userDecryptedPassword, user.hashedPassword)) {
         user.loginFailedCount += 1;
         await user.save();
         throw new AuthenticationError("Invalid username or password");

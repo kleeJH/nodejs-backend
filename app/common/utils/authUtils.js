@@ -84,8 +84,8 @@ function validatePassword(password) {
   const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
   password = password ?? null;
   // Decrypt password from frontend
-  // const decryptedPassword = rsaDecrypt(password); // TODO: test this
-  const decryptedPassword = password;
+  const decryptedPassword = rsaDecrypt(password); // TODO: Important! Test this
+  // const decryptedPassword = password;
 
   if (!decryptedPassword || decryptedPassword.length < 6 || decryptedPassword.length > 32 || !passwordRegex.test(decryptedPassword)) {
     throw new UserInputError("Invalid password. Password must be between 8 and 32 characters and include at least one capital letter");
@@ -112,13 +112,13 @@ function validateAndSaltHashPassword(password) {
 /**
  * Verify the user-entered password against the stored password hash.
  *
- * @param {string} userSentPassword - The password entered by the user.
+ * @param {string} userSentDecryptedPassword - The decrypted password entered by the user.
  * @param {string} storedPasswordHash - The hashed password stored in the database.
  * @param {string} storedPasswordSalt - The salt used to hash the password stored in the database.
  * @return {boolean} Indicates whether the user-entered password is valid.
  */
-async function verifyPassword(userSentPassword, storedPasswordHash, storedPasswordSalt) {
-  if (!userSentPassword) {
+async function verifyPassword(userSentDecryptedPassword, storedPasswordHash, storedPasswordSalt) {
+  if (!userSentDecryptedPassword) {
     throw new UserInputError("User password must not be empty");
   }
 
@@ -130,9 +130,7 @@ async function verifyPassword(userSentPassword, storedPasswordHash, storedPasswo
     throw new DeveloperError("Stored password salt must not be empty");
   }
 
-  // Decrypt password from frontend
-  // const decryptedPassword = rsaDecrypt(userSentPassword); // TODO: test this
-  const decryptedUserSentPassword = userSentPassword;
+  const decryptedUserSentPassword = userSentDecryptedPassword;
 
   const isValidPassword = verifySync(storedPasswordHash, decryptedUserSentPassword, {
     salt: base64ToBuffer(storedPasswordSalt),
