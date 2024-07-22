@@ -76,9 +76,40 @@ var logger = winston.createLogger({
     exitOnError: false,
 });
 
+var cronLogger = winston.createLogger({
+    level: level(),
+    levels: levels,
+    format: format,
+    transports: [
+        new winston.transports.DailyRotateFile({
+            filename: 'logs/cron/%DATE%.log',
+            datePattern: 'YYYY-MM-DD',
+            zippedArchive: false,
+            maxSize: '20m',
+            maxFiles: '30d'
+        })
+    ],
+    exitOnError: false,
+});
+
 // Don't show console logs in production
 if (process.env.NODE_ENV !== 'production') {
     logger.add(new winston.transports.Console({
+        level: 'debug',
+        handleExceptions: true,
+        format: winston.format.combine(
+            format,
+            winston.format.colorize(),
+            winston.format.prettyPrint(),
+            winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+            winston.format(info => ({ ...info, timestamp: chalk.gray(info.timestamp) }))(),
+            winston.format.printf(
+                ({ timestamp, level, message }) => `${timestamp} [${level}] : ${message}`
+            )
+        )
+    }));
+
+    cronLogger.add(new winston.transports.Console({
         level: 'debug',
         handleExceptions: true,
         format: winston.format.combine(
@@ -100,7 +131,7 @@ logger.stream = {
     }
 }
 
-// self-call log commands
+// app log commands
 const log = {
     error(message) {
         logger.error(message);
@@ -119,7 +150,27 @@ const log = {
     }
 }
 
+// cron log commands
+const cronLog = {
+    error(message) {
+        cronLogger.error(message);
+    },
+    warn(message) {
+        cronLogger.warn(message);
+    },
+    info(message) {
+        cronLogger.info(message);
+    },
+    http(message) {
+        cronLogger.http(message);
+    },
+    debug(message) {
+        cronLogger.debug(message);
+    }
+}
+
 export {
     log,
-    logger
+    logger,
+    cronLog
 }

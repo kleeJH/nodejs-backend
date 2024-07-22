@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import chalk from "chalk";
-import { logger } from "../common/utils/loggingUtils.mjs";
+import { log } from "../common/utils/loggingUtils.mjs";
 
 dotenv.config();
 
@@ -15,8 +15,8 @@ export default {
       })
       .then(() => console.log(`[${chalk.green("✓")}]`, `Connected to ${chalk.cyan("MongoDB")} on [${chalk.magenta(process.env.MONGODB_DBNAME)}] successfully.`))
       .catch((err) => {
-        logger.error("Error while connecting to MongoDB!");
-        logger.error(err);
+        log.error("Error while connecting to MongoDB!");
+        log.error(err);
         process.exit(1);
       });
   },

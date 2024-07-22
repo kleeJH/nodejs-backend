@@ -1,8 +1,7 @@
 import dotenv from "dotenv";
 import cron from "cron";
-import chalk from "chalk";
 import { exec } from "child_process";
-import { log } from "../common/utils/loggingUtils.mjs";
+import { cronLog } from "../common/utils/loggingUtils.mjs";
 
 dotenv.config();
 
@@ -15,10 +14,28 @@ async function databaseBackup() {
         cronTime,
         async () => {
             try {
-                console.log(`[${chalk.cyan("!")}] Database backup started.`);
+                cronLog.info(`[!] Database backup started.`);
+                const mongoDBURL = process.env.MONGODB_URL;
+
+                const directoryDate = new Date().toISOString().split("T")[0];
+                const directoryPath = `${backupDirectory}/${directoryDate}`;
+                const backupCommand = `mongodump --uri ${mongoDBURL} --db ${process.env.MONGODB_DBNAME} --out ${directoryPath}`;
+
+                await new Promise((resolve, reject) => {
+                    exec(backupCommand, (error, stdout, stderr) => {
+                        if (error) {
+                            reject(error);
+                        } else if (stderr) {
+                            reject(stderr);
+                        } else {
+                            resolve(stdout);
+                        }
+                    });
+                })
             } catch (error) {
+                cronLog.error(`[✗] Database backup failed.`, error.message);
             } finally {
-                console.log(`[${chalk.green("✓")}] Database backup completed.`);
+                cronLog.info(`[✓] Database backup completed.`);
             }
         },
         null,
